@@ -1,0 +1,29 @@
+{
+  "name": "sgs_node",
+  "version": "1.0.0",
+  "description": "Proyecto sgs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "archiver": "^1.1.0",
+    "co": "^4.6.0",
+    "ioredis": "^1.15.1",
+    "koa": "^1.1.2",
+    "koa-body": "^1.4.0",
+    "koa-router": "^5.4.0",
+    "line-by-line": "^0.1.4",
+    "lodash": "^4.11.1",
+    "moment": "^2.11.2",
+    "mongodb": "^2.2.33",
+    "mysql": "^2.10.2",
+    "mysql2": "^0.15.8",
+    "natural": "^0.2.1",
+    "number-formatter": "^1.2.0",
+    "sequelize": "^3.19.3",
+    "socket.io": "^1.4.5"
+  }
+}

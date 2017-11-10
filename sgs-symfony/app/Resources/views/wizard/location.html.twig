@@ -1,0 +1,47 @@
+<form id="georeferencing" class="info_params">
+    <h5 class="teal-text">Localización</h5>
+    <p>Escoja las entidades territoriales que desea incluir en el reporte.</p>
+    <p>
+      <input name="type_select_location" type="radio" id="testdg6" value="all" checked="checked"/>
+      <label for="testdg6">Todos</label>
+    </p>
+    <p>
+      <input name="type_select_location" type="radio" id="testdg8" value="specific"/>
+      <label for="testdg8">Especifico</label>
+    </p>
+
+    <div id="location_atree" style="display:none"></div>
+</form>
+
+
+<script src="{{asset('js/custom_autocomplete.js')}}"></script>
+<script src="{{asset('js/autocomplete_tree.js')}}"></script>
+
+<script type="text/javascript">
+$(function(){  
+
+    $("input[name='type_select_location']").on('change',function(){
+
+        $("#location_atree").hide()
+
+        if($(this).val() == 'specific'){
+            $("#location_atree").show()
+        }
+
+    })
+
+    $("#location_atree").autocompleteTree({
+       autocompletePath:[
+           "{{path('autocomplete_municipality')}}",
+           "{{path('autocomplete_department')}}"],
+       infoPath:"{{path('municipality_get_tree')}}",
+       fieldName:'location'
+    })
+
+    $("#georeferencing").on("reset",function(){
+        $("#location_atree").hide()
+        $("#location_atree").data('autocompleteTree').reset()
+    })
+
+})
+</script>

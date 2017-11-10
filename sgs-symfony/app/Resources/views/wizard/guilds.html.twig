@@ -1,0 +1,10 @@
+<form id="guilds" class="info_params">
+    <h5 class="teal-text">Gremios</h5>
+    <p>Escoja el gremio o los gremios que desea incluir en el reporte.</p>
+    {% for guild in guilds %}
+    <p class="col s6">
+      <input type="checkbox" name="guildIds[]" id="guild2_{{guild.id}}" value="{{guild.id}}" />
+      <label for="guild2_{{guild.id}}">{{ guild.name }}</label>
+    </p> 
+    {% endfor %}
+</form>

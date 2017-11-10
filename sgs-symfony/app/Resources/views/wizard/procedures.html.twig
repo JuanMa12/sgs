@@ -1,0 +1,83 @@
+<form id="procedures" class="info_params">
+    <h5 class="teal-text">Procedimientos</h5>
+    <p>Escoja los procedimientos que desea incluir en el reporte.</p>
+    
+    <p class="col s12">
+      <input type="radio" name="type_procedure" id="option4" value="all" checked="checked"/>
+      <label for="option4">Todos</label>
+    </p>
+
+    <p class="col s12">
+      <input type="radio" name="type_procedure" id="option5" value="procedures" />
+      <label for="option5">Especificos</label>
+    </p>
+
+    <div id="specific_procedure" style="display:none">
+      <!--
+      <p class="col s6">
+        <input type="checkbox" class="autocomplete_prodedure" id="option1" path-autocomplete-diag="{{path('autocomplete_health_process_f')}}" checked="checked" />
+        <label for="option1">Grupo</label>
+      </p>
+      -->
+      <p class="col s6">
+        <input type="checkbox" class="autocomplete_prodedure" path-autocomplete-diag="{{path('autocomplete_health_process_two')}}" id="option2" />
+        <label for="option2">Subgrupo</label>
+      </p>
+      <p class="col s6">
+        <input type="checkbox" id="option3" class="autocomplete_prodedure" path-autocomplete-diag="{{path('autocomplete_health_process_t')}}" />
+        <label for="option3">Categoria</label>
+      </p>
+      <p class="col s6">
+        <input type="checkbox" id="option4" class="autocomplete_prodedure" path-autocomplete-diag="{{path('autocomplete_health_process_four')}}" checked="checked" />
+        <label for="option4">Subcategoria</label>
+      </p>
+      <div id="procedures_atree"></div>
+    </div>
+</form>
+
+
+<script src="{{asset('js/custom_autocomplete.js')}}"></script>
+<script src="{{asset('js/autocomplete_tree.js')}}"></script>
+
+<script type="text/javascript">
+$(function(){  
+    var infoPathDiag = []
+
+    $('.autocomplete_prodedure').each(function() {
+        if ($(this).is(":checked")) {
+          infoPathDiag.push($(this).attr('path-autocomplete-diag'));
+        }
+    })
+
+    $("input[name='type_procedure']").on('change',function(){
+        $("#specific_procedure").hide()
+        $("#procedures_atree").data('autocompleteTree').reset()
+        if ($(this).val() == "procedures") {
+          $("#specific_procedure").show()            
+        }
+    })
+
+    $("#procedures_atree").autocompleteTree({
+       autocompletePath:infoPathDiag,
+       infoPath:"{{path('health_procedures_tree')}}",
+       fieldName:'code_procedure'
+    })
+
+    $(".autocomplete_prodedure").on('change',function(){
+      infoPathDiag = []
+      $('.autocomplete_prodedure').each(function() {
+        if ($(this).is(":checked")) {
+          infoPathDiag.push($(this).attr('path-autocomplete-diag'));
+
+        }
+      })
+      $("#procedures_atree").data('autocompleteTree').refreshData(infoPathDiag)
+    })
+
+    $("#procedures").on("reset",function(){
+        $("#specific_procedure").hide()
+        $("#procedures_atree").data('autocompleteTree').reset()
+    })
+
+})
+</script>

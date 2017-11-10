@@ -1,0 +1,149 @@
+<div class="row">
+	<div class="col s12">
+		<h4 class="orange-text">{% if processOrder.getName() is defined %}{{ processOrder.getName() }}{% endif %}</h4>  
+        <p><strong>Creado por: </strong>{{processOrder.getUser().getName()}}</p>   
+        <h5 class="teal-text">Tipo de Reporte: {{processOrder.getProcessOrderType().getName()}}</h5>   
+		<p>{{processOrder.getProcessOrderType().getDescription()}}</p> 
+	</div>
+</div>
+{% if params is defined and params == true %}
+	<div class="row hide-on-med-and-down">
+		{% include '/general/params.html.twig' with {processOrder:processOrder} %}
+	</div>
+{% endif %}
+{% for year,dataYear in data %}
+	<div class="row">
+		<div class="col s12">
+			<div class="card-panel">
+				<div id="container_prod{{processOrder.getId()}}{{year}}"></div>
+			</div>
+		</div>
+		{% set affiliates = 0 %}
+		{% set dCost = 0 %}
+		
+		{% for value in dataYear.quantity %}{% set affiliates = affiliates + value %}{% endfor %}
+		{% for value in dataYear.diagnostic %}{% set dCost = dCost + value %}{% endfor %}		
+
+		{% if resume is defined and resume == true %}
+			<div class="col s12">
+				<div class="card-panel">
+					<h5 class="teal-text">Resumen de datos {{year}}</h5>
+					<p>Total Usuarios: {{affiliates | number_format(0,'.',',')}}</p>
+					<p>Total Costos Procedimientos: $ {{ dCost | number_format(0,'.',',')}}</p>	
+				</div>
+			</div>
+		{% endif %}
+	</div>
+	<script type="text/javascript">
+
+		$(function () {
+		    $('#container_prod{{processOrder.getId()}}{{year}}').highcharts({
+		        chart: {
+		            type: 'column'
+		        },
+		        colors: ['#0070B3', '#757575','#FFA124'],
+		        title: {
+		            text: 'Costos De Atenciones {{year}}'
+		        },
+		        subtitle: {
+			        text: 'Fuente: {{processOrder.getParams().Fuente}} {{year}}',
+			        floating: true,
+			        align: 'right',
+			        verticalAlign: 'bottom',
+			        y: 15
+			    },
+		        xAxis: {
+		            categories: [
+		            	{% for value in dataYear.epss %}
+						'{{value}}',
+						{% endfor %}
+		            ],
+		            crosshair: true
+		        },
+		        yAxis: {
+		            title: {
+		                text: 'Valor'
+		            }
+		        },
+
+		        yAxis: [{ // Primary yAxis
+		            labels: {
+		                format: '{value:,.0f}',
+		                style: {
+		                    color: Highcharts.getOptions().colors[1]
+		                }
+		            },
+		            title: {
+		                text: 'Número de usuarios',
+		                style: {
+		                    color: Highcharts.getOptions().colors[1]
+		                }
+		            }
+		        }, { // Secondary yAxis
+		            title: {
+		                text: 'Costos',
+		                style: {
+		                    color: Highcharts.getOptions().colors[0]
+		                }
+		            },
+		            labels: {
+		                format: '$ {value:,.0f}',
+		                style: {
+		                    color: Highcharts.getOptions().colors[0]
+		                }
+		            },
+		            opposite: true
+		        }],
+
+		        tooltip: {
+		            headerFormat: '<span style="font-size:10px">{point.key}</span><table>',
+		            pointFormat: '<tr><td style="color:{series.color};padding:0">{series.name}: </td>' +
+		                '<td style="padding:0"><b>{point.y:,.0f}</b></td></tr>',
+		            footerFormat: '</table>',
+		            shared: true,
+		            useHTML: true
+		        },
+		        plotOptions: {
+		            column: {
+		                pointPadding: 0.2,
+		                borderWidth: 0
+		            },
+		            spline: {
+			            states: {
+			                hover: {
+			                    enabled: false
+			                }
+			            }
+			        }
+		        },
+		        credits:{
+		            enabled:false
+		        },
+		        series: [
+
+		        	{
+						name: 'Cantidad de usuarios',
+						type:'spline',
+						lineWidth: 0,
+						zIndex: 1,
+						data: [
+							{% for value in dataYear.quantity %}
+							{{value}},
+							{% endfor %}
+						]
+					},				
+					{
+						name: 'Costos Procedimientos',
+						type:'column',
+						yAxis: 1,
+						data: [
+							{% for value in dataYear.diagnostic %}
+							{{value}},
+							{% endfor %}
+						]
+					},				
+		        ]
+		    });
+		});
+	</script>
+{% endfor %}

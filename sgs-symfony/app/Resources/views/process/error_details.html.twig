@@ -1,0 +1,11 @@
+{% for process in processOrder.getProcesses() %}
+	{% if process.status != 4 %}
+    {% for processError in process.getProcessesError() %}
+        <tr>
+            <td>{{ processError.getDate()|date('Y-m-d H:i') }}</td>
+            <td>{{process.getId()}}</td>
+            <td>{{processError.getDescription()}}</td>               
+        </tr>
+    {% endfor %}
+	{% endif %}
+{% endfor %}

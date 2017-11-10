@@ -1,0 +1,5 @@
+
+INSERT INTO `health_promotion_entities` (name,alias,code,status,legal)
+VALUES ('NUEVA EPS S.A.','NUEVA EPS S.A.','EPS037',1,'NO APLICA')
+,('SALUD  TOTAL  S.A.  E.P.S.','SALUD  TOTAL  S.A.  E.P.S.','EPS002',1,'NO APLICA'),
+('EPS Y MEDICINA PREPAGADA SURAMERICANA S.A','EPS SURA ','EPS010',1,'NO APLICA');

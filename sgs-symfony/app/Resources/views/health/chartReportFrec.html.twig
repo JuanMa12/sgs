@@ -1,0 +1,160 @@
+<div class="row">
+	<div class="col s12">
+		<h4 class="orange-text">{% if processOrder.getName() is defined %}{{ processOrder.getName() }}{% endif %}</h4>  
+        <p><strong>Creado por: </strong>{{processOrder.getUser().getName()}}</p>   
+        <h5 class="teal-text">Tipo de Reporte: {{processOrder.getProcessOrderType().getName()}}</h5>   
+		<p>{{processOrder.getProcessOrderType().getDescription()}}</p> 
+	</div>
+</div>
+{% if params is defined and params == true %}
+	<div class="row hide-on-med-and-down">
+		{% include '/general/params.html.twig' with {processOrder:processOrder} %}
+	</div>
+{% endif %}
+{% for year,yearData in data %}
+<div class="row">
+	<div class="col s12">
+		<div class="card-panel">
+			<div id="container_frec{{processOrder.getId()}}{{year}}"></div>
+		</div>
+	</div>
+
+	{% set totalZ1 = 0 %}
+	{% set totalZ2 = 0 %}
+	{% set totalZ3 = 0 %}
+
+	{% set aTotalZ1 = 0 %}
+	{% set aTotalZ2 = 0 %}
+	{% set aTotalZ3 = 0 %}
+
+	{% for value in yearData %}
+		{% set totalZ1 = totalZ1 + value.fre1.population %}
+		{% set totalZ2 = totalZ2 + value.fre2.population %}
+		{% set totalZ3 = totalZ3 + value.fre3.population %}
+		{% set aTotalZ1 = aTotalZ1 + value.fre1.attentions %}
+		{% set aTotalZ2 = aTotalZ2 + value.fre2.attentions %}
+		{% set aTotalZ3 = aTotalZ3 + value.fre3.attentions %}
+	{% endfor %}    
+
+	{% set totalPop = totalZ1 + totalZ2 + totalZ3 %}
+	{% set totalA = aTotalZ1 + aTotalZ2 + aTotalZ3 %}
+
+	{% if resume is defined and resume == true %}
+		<div class="col s12">
+			<div class="card-panel">
+				<h5 class="teal-text">Resumen de datos {{year}}</h5>
+				<p>Frecuencia Zona1: {% if totalZ1 > 0 %}{{ (aTotalZ1/totalZ1) | number_format(2,'.',',') }}{% else %}0{% endif %}</p>
+				<p>Frecuencia Zona2: {% if totalZ2 > 0 %}{{ (aTotalZ2/totalZ2) | number_format(2,'.',',') }}{% else %}0{% endif %}</p>
+				<p>Frecuencia Zona3: {% if totalZ3 > 0 %}{{ (aTotalZ3/totalZ3) | number_format(2,'.',',') }}{% else %}0{% endif %}</p>				
+				<p>Total poblacion: {{ totalPop | number_format(0,'.',',')}}</p>
+				<p>Atenciones totales: {{ totalA | number_format(0,'.',',')}}</p>
+				<p>Total Frecuencia de uso: {% if totalPop > 0 %}{{ (totalA/totalPop) | number_format(2,'.',',')}}{% else %} 0{% endif %}</p>
+			</div>
+		</div>
+	{% endif %}
+</div>
+<script type="text/javascript">
+
+	$(function () {
+	    $('#container_frec{{processOrder.getId()}}{{year}}').highcharts({
+	        chart: {
+	            type: 'column'
+	        },
+	        colors: ['#0070B3', '#212121','#FFA124'],
+	        title: {
+	            text: 'Frecuencia de uso año {{year}}'
+	        },
+	        subtitle: {
+		        text: 'Fuente: {{processOrder.getParams().Fuente}} {{year}}',
+		        floating: true,
+		        align: 'right',
+		        verticalAlign: 'bottom',
+		        y: 15
+		    },
+	        xAxis: {
+	            categories: [
+	            	{% for key,value in yearData %}
+					'{{key}}',
+					{% endfor %}
+	            ],
+	            crosshair: true
+	        },
+
+	        yAxis: [{ // Primary yAxis
+	            labels: {
+	                format: '{value:,.0f}',
+	                style: {
+	                    color: Highcharts.getOptions().colors[1]
+	                }
+	            },
+	            title: {
+	                text: 'Frecuencia',
+	                style: {
+	                    color: Highcharts.getOptions().colors[1]
+	                }
+	            }
+	        }],
+
+	        tooltip: {
+	            headerFormat: '<span style="font-size:10px">{point.key}</span><table>',
+	            pointFormat: '<tr><td style="color:{series.color};padding:0">{series.name}: </td>' +
+	                '<td style="padding:0"><b>{point.y:,.0f}</b></td></tr>',
+	            footerFormat: '</table>',
+	            shared: true,
+	            useHTML: true
+	        },
+	        plotOptions: {
+	            column: {
+	                pointPadding: 0.2,
+	                borderWidth: 0
+	            }
+	        },
+	        credits:{
+	            enabled:false
+	        },
+	       	series: [
+				
+				{
+					name: 'Zona 1',
+					type:'spline',
+					data: [
+						{% for value in yearData %}
+							{% if value.fre1.population > 0 %}
+								{{(value.fre1.attentions / value.fre1.population)}},
+							{% else %}
+								0,
+							{% endif %}
+						{% endfor %}
+					]
+				},
+				{
+					name: 'Zona 2',
+					type:'spline',
+					data: [
+						{% for value in yearData %}
+							{% if value.fre2.population > 0 %}
+								{{(value.fre2.attentions / value.fre2.population)}},
+							{% else %}
+								0,
+							{% endif %}
+						{% endfor %}
+					]
+				},
+				{
+					name: 'Zona 3',
+					type:'spline',
+					data: [
+						{% for value in yearData %}
+							{% if value.fre2.population > 0 %}
+								{{(value.fre3.attentions / value.fre3.population)}},
+							{% else %}
+								0,
+							{% endif %}
+						{% endfor %}
+					]
+				},
+	        ]
+	    });
+	});
+</script>
+{% endfor %}

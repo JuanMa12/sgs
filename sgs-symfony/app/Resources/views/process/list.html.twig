@@ -1,0 +1,107 @@
+{% extends 'base.html.twig' %}
+{% block title %}<i class="material-icons left hide-on-small-only">trending_up</i>Procesos{% endblock %}
+
+{% block content %}
+	<div class="col l9 s12">
+		<div class="card-panel">
+			<div class="row">
+				<div class="col s12">
+
+					<table id="profile_table" class="striped ui table dataTable">
+						<thead>
+							<tr>
+								<th>Fecha</th>
+								<th>Nombre</th>
+								<th>Tipo</th>
+								<th>Avance</th>
+								<th>Acciones</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td></td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Modal Structure -->
+    <div id="errors_report" class="modal modal-fixed-footer">
+        <div class="modal-content">
+            <h4 class="teal-text">Listado de incidencias</h4>
+            <table class="table" id="process_error_table">
+                <thead>
+                    <tr>
+                        <td>Fecha</td>
+                        <td>Id del proceso</td>
+                        <td>Error</td>
+                        <td>Severidad</td>
+                    </tr>       
+                </thead>
+                <tbody>
+               
+                    
+                </tbody>
+            </table>
+        </div>
+        <div class="modal-footer">
+            <a href="#!" class="modal-action modal-close waves-effect waves-green btn-flat ">Cerrar</a>
+            <a class="btn" id="btn_dowland_report_error">Descargar Reporte</a>
+        </div>
+    </div>
+
+
+{% endblock %}
+
+{% block javascripts %}
+<script type="text/javascript">
+	$(document).on('ready',function(){
+
+		$('#profile_table').dataTable({
+			"sPaginationType": "full_numbers",
+			"bProcessing": true,
+			"bServerSide": true,
+			"bLengthChange": false,
+			"sAjaxSource": "{{ path('process_grid') }}",
+			"aoColumns": [
+				{"mRender":filterCharacters},
+				{"mRender":filterCharacters},
+				{"mRender":filterCharacters},
+				null ,
+				{"mRender":filterCharacters, "bSearchable": false, "bSortable": false,"width":"20%" }],
+			"fnServerData": function ( sSource, aoData, fnCallback ) {
+			  $.ajax( {
+			    "dataType": 'json',
+			    "type": "POST",
+			    "url": sSource,
+			    "data": aoData,
+			    "success": fnCallback
+			  } );
+			},
+		});
+
+		$('#errors_report').modal({
+            ready: clearInputs
+        });
+
+	})
+
+
+	function getInfoProcessError(path){
+        var tbody = $("#process_error_table").find("tbody")
+        tbody.html("")
+
+        $.post(path,function(data){
+            if(data.success == true){
+                tbody.html(data.description.html)
+                $("#btn_dowland_report_error").attr('href',data.description.pathDowland);
+                $('#errors_report').modal('open')
+            }
+        })
+    }
+
+</script>
+{% endblock %}

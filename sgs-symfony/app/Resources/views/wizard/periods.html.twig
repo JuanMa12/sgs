@@ -1,0 +1,81 @@
+<form id="periods{% if mode is not null %}{{mode}}{% endif %}" class="info_params">
+    <h5 class="teal-text">Fecha de corte</h5>
+    <p>Escoja el rango de fechas que desea incluir en el reporte.</p>
+    {% for key,period in periods %}
+    <div class="row">
+        <p class="col s12">
+          <input type="checkbox" id="pyear_{{key}}" year="{{key}}"  />
+          <label for="pyear_{{key}}">{{key}}</label>
+        </p>
+        <hr>
+        <div style="padding-left:20px">
+        {% if mode is not null and mode == 'quarter' %}
+          <div  class="row" id="quarter">
+            <p class="teal-text">Trimestre</p>
+            {% set datesQuarterOne = [] %}
+            {% set datesQuarterTwo = [] %}
+            {% set datesQuarterThree = [] %}
+            {% set datesQuarterFour = [] %}
+
+            {% for month in period %}
+              {% if month|date('m')|number_format() >=  1 and month|date('m')|number_format()  <= 3 %}
+                  {% set datesQuarterOne = datesQuarterOne|merge([month]) %}
+              {% elseif month|date('m')|number_format() >= 4 and month|date('m')|number_format() <= 6 %}
+                  {% set datesQuarterTwo = datesQuarterTwo|merge([month]) %}
+              {% elseif month|date('m')|number_format() >= 7 and month|date('m')|number_format()  <= 9 %}
+                  {% set datesQuarterThree = datesQuarterThree|merge([month]) %}
+              {% elseif month|date('m')|number_format() >= 10 and month|date('m')|number_format()  <= 12 %}
+                  {% set datesQuarterFour = datesQuarterFour|merge([month]) %}
+              {% endif %}              
+            {% endfor %}
+              <p>
+                <input type="checkbox" name="periods[]" id="{{key}}quarter_one" year="{{key}}" value="{{datesQuarterOne|join(',')}}" />
+                <label for="{{key}}quarter_one">Enero a Marzo</label>
+              </p>
+              <p>
+                <input type="checkbox" name="periods[]" id="{{key}}quarter_two" year="{{key}}" value="{{datesQuarterTwo|join(',')}}" />
+                <label for="{{key}}quarter_two">Abril a Junio</label>
+              </p>
+              <p>
+                <input type="checkbox" name="periods[]" id="{{key}}quarter_three" year="{{key}}" value="{{datesQuarterThree|join(',')}}" />
+                <label for="{{key}}quarter_three">Julio a Septiembre</label>
+              </p>
+              <p>
+                 <input type="checkbox" name="periods[]" id="{{key}}quarter_four" year="{{key}}" value="{{datesQuarterFour|join(',')}}" />
+                <label for="{{key}}quarter_four">Octubre a Diciembre</label>
+              </p>
+          </div>
+        {% else %}                
+          {% for month in period %}
+              <p class="col s12 m6">
+                <input type="checkbox" year="{{key}}" name="periods[]" id="test2_{{key}}{{month}}" value="{{month}}" />
+                <label for="test2_{{key}}{{month}}">{{ month|date('F') }}</label>
+              </p>
+          {% endfor %}
+        {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</form>
+
+<script type="text/javascript">
+$(function(){  
+ 	//evento que checkea los meses y el año al que pertenecen
+    $("input[id^='pyear']").on('change',function(){
+    	if ($(this).is(':checked')) {
+    		$(`input[year="${$(this).attr('year')}"]`).prop('checked','checked')
+    	}else{
+    		$(`input[year="${$(this).attr('year')}"]`).prop('checked',false)
+    	}
+    })
+
+  	//evento que checkea el año al activar un periodo
+    $("input[name^='periods']").on('change',function(){
+    	if ($(this).is(':checked')) {
+    		$(`input[id="pyear_${$(this).attr('year')}"`).prop('checked','checked')
+    	}
+    })
+
+})
+</script>
+

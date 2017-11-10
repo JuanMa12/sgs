@@ -1,0 +1,13 @@
+<div style="max-width:600px">
+	<div style="padding: 20px;max-width: 100%;background-color: white">
+	  	<h4 style="color: #006B9E">Te has registrado en <a href="{{ app.request.getScheme()~"://"~app.request.getHttpHost() }}">{{ app.request.getScheme()~"://"~app.request.getHttpHost() }}</a></h4>
+	  	
+		<p style="font-size: 14px">{{ user.getName() }}, tu usuario en la página es:<strong> {{ user.getUsername() }}</strong></p>
+
+		<p style="font-size: 14px" >Para confirmar tu solicitud de registro por favor haz clic en el siguiente enlace:</p>
+		
+		<a href="{{ confirmlink }}">{{ confirmlink }}</a>
+	</div>
+</div>
+
+ 

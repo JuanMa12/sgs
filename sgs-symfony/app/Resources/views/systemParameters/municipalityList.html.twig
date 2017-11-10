@@ -1,0 +1,196 @@
+{% extends 'base.html.twig' %}
+{% block title %}<i class="material-icons left hide-on-small-only">map</i>Municipios{% endblock %}
+
+{% block content %}
+	<style type="text/css">
+	.ui-autocomplete { position: absolute; cursor: default;z-index:3000 !important;}
+	</style>
+
+	<div class="col l9 s12">
+		<div class="card-panel">
+			<div class="row">
+				<div class="col s12">
+
+					<a class="waves-effect waves-light btn orange" href="javascript:openMunicipalityModal()">Crear</a>
+
+					<table id="municipality_table" class="striped ui table dataTable">
+						<thead>
+							<tr>
+								<th>Código</th>
+								<th>Zona</th>
+								<th>Nombre</th>
+								<th>Departamento</th>
+								<th>Acciones</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td></td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div id="municipality_form_modal" class="modal modal-fixed-footer">
+		<div class="modal-content">
+			<h4>Formulario de Municipios</h4>
+			<form id="municipality_form">
+				<div class="input-field">
+					<input type="text" name="_name" id="_name" required>
+					<label for="_name">Nombre</label>
+				</div>
+				<div class="input-field">
+					<input type="text" class="number" name="_code" id="_code" required>
+					<label for="_code">Código</label>
+				</div>
+				<div class="input-field">	
+					<input 
+	                    type="hidden" 
+	                    name="_department" 
+	                    id="_department">
+	                <input 
+	                    type="text" 
+	                    name="_department_label" 
+	                    id="_department_label">
+	                <label for="_department_label" required>Departamento</label> 
+				</div>
+				<div class="input-field">
+					<input type="text" class="number" name="_zone" id="_zone" required>
+					<label for="_zone">Zona</label>
+				</div>
+				<div class="input-field">
+					<input type="text" class="number" name="_category" id="_category">
+					<label for="_category">Categoría</label>
+				</div>
+				<input type="hidden" name="_id" value="">
+			</form>
+		</div>
+		<div class="modal-footer">
+			<a id="municipality_form_button" href="javascript:void(0)" class="btn orange">Guardar</a>
+		</div>
+	</div>
+
+
+{% endblock %}
+
+{% block javascripts %}
+
+<script type="text/javascript" src="{{asset('js/jquery-ui.min.js')}}"></script>
+<script type="text/javascript" src="{{asset('js/custom_autocomplete.js')}}"></script>
+<script type="text/javascript">
+	$(document).on('ready',function(){
+
+		$('#municipality_table').dataTable({
+			"sPaginationType": "full_numbers",
+			"bProcessing": true,
+			"bServerSide": true,
+			"aaSorting": [[ 0, "desc" ]],
+			"bLengthChange": false,
+			"sAjaxSource": "{{ path('municipality_grid') }}",
+			"aoColumns": [
+				{"mRender":filterCharacters},
+				{"mRender":filterCharacters},
+				{"mRender":filterCharacters},
+				{"mRender":filterCharacters},
+				{"mRender":filterCharacters, "bSearchable": false, "bSortable": false,"width":"20%" }] ,
+			"fnServerData": function ( sSource, aoData, fnCallback ) {
+			  $.ajax( {
+			    "dataType": 'json',
+			    "type": "POST",
+			    "url": sSource,
+			    "data": aoData,
+			    "success": fnCallback
+			  } );
+			},
+		})
+
+		$("#municipality_form_button").on('click',function(){
+			$("#municipality_form").submit()
+		})
+
+		$("#municipality_form").validate({
+			submitHandler:function(form){
+
+				toggleButton("#municipality_form_button")
+
+				$.post("{{path('municipality_save') }}", $(form).serialize(), function(data){
+
+					toggleButton("#municipality_form_button")
+					if (data.success == true) {
+						$('#municipality_form_modal').modal('close')
+						Materialize.toast('Se han guardado los cambios.',4000)
+						$("input[name='_id']").val(data.description)
+						
+					}else{
+						Materialize.toast(data.description,4000)
+					}
+
+				})
+			}
+		})
+
+		$("#_department_label").autocomplete_default({
+            delay: 500,
+            minLength: 2,
+            source:function(request, response){
+                $.post("{{ path('autocomplete_department') }}",{word:request.term},function(data){
+
+                    if(data.success == true){
+                        response(data.description)
+                    }
+                })
+            },
+            select: function( event, ui ) {
+                $(this).val(ui.item.label);
+                $("#_department").val(ui.item.value);
+                return false;
+            },
+            close: function( event, ui ) {
+                if($("#_department").val()==''){
+                    $(this).val('');
+                }
+            }
+        })
+
+        $("#_department_label").on('focusout', function (event) {
+            if($("#_department").val()==''){
+                $(this).val('');
+            }
+        })
+		$('#municipality_form_modal').modal({
+			ready: clearInputs,
+		    complete: function() {
+		        document.getElementById('municipality_form').reset();
+		    	$("input[name='_id']").val('')
+		    	$("#municipality_table").dataTable().fnDraw()        
+		    }
+		});
+	})
+
+	function openMunicipalityModal(){
+		$('#municipality_form_modal').modal('open')
+	} 
+
+
+	function edit(id){
+		$.post('{{path("municipality_get_info")}}',{_id:id},function(data){
+			if(data.success = true){
+
+				$("input[name='_id']").val(id)
+				$("input[name='_name']").val(data.description.name)
+				$("input[name='_code']").val(data.description.code)
+				$("input[name='_zone']").val(data.description.zone)
+				$("input[name='_department']").val(data.description.deoartmentId)
+				$("input[name='_department_label']").val(data.description.departmentName)
+				$("input[name='_category']").val(data.description.category)
+
+				openMunicipalityModal()
+			}
+		})
+	}
+
+</script>
+{% endblock %}

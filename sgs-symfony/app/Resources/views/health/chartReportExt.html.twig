@@ -1,0 +1,160 @@
+<div class="row">
+	<div class="col s12">
+		<h4 class="orange-text">{% if processOrder.getName() is defined %}- {{ processOrder.getName() }}{% endif %}</h4>  
+        <p><strong>Creado por: </strong>{{processOrder.getUser().getName()}}</p>  
+        <h5 class="teal-text">Tipo de Reporte: {{processOrder.getProcessOrderType().getName()}}</h5>   
+		<p>{{processOrder.getProcessOrderType().getDescription()}}</p> 
+	</div>
+</div>
+{% if params is defined and params == true %}
+	<div class="row hide-on-med-and-down">
+		{% include '/general/params.html.twig' with {processOrder:processOrder} %}
+	</div>
+{% endif %}
+{% for year,dataYear in data %}	
+	{% set totalZ1 = 0 %}
+	{% set totalZ2 = 0 %}
+	{% set totalZ3 = 0 %}
+
+	{% set uTotalZ1 = 0 %}
+	{% set uTotalZ2 = 0 %}
+	{% set uTotalZ3 = 0 %}
+
+	{% for value in dataYear %}
+		{% set totalZ1 = totalZ1 + value.ext1.affiliates %}
+		{% set totalZ2 = totalZ2 + value.ext2.affiliates %}
+		{% set totalZ3 = totalZ3 + value.ext3.affiliates %}
+		{% set uTotalZ1 = uTotalZ1 + value.ext1.affiliateConsulted %}
+		{% set uTotalZ2 = uTotalZ2 + value.ext2.affiliateConsulted %}
+		{% set uTotalZ3 = uTotalZ3 + value.ext3.affiliateConsulted %}
+	{% endfor %}    
+
+	{% set totalPop = totalZ1 + totalZ2 + totalZ3 %}
+	{% set totalU = uTotalZ1 + uTotalZ2 + uTotalZ3 %}
+
+<div class="row">
+	<div class="col s12">
+		<div class="card-panel">
+			<div id="container_ext{{processOrder.getId()}}{{year}}"></div>
+		</div>
+	</div>
+	{% if resume is defined and resume == true %}
+	<div class="col s12">
+		<div class="card-panel">
+			<h5 class="teal-text">Resumen de datos {{year}}</h5>
+			<p>Porcentaje Zona1: {% if totalZ1 > 0 %}{{ (uTotalZ1/totalZ1*100) | number_format(0,'.',',') }}{% else %}0{% endif %} %</p>
+			<p>Porcentaje Zona2: {% if totalZ2 > 0 %}{{ (uTotalZ2/totalZ2*100) | number_format(0,'.',',') }}{% else %}0{% endif %} %</p>
+			<p>Porcentaje Zona3: {% if totalZ3 > 0 %}{{ (uTotalZ3/totalZ3*100) | number_format(0,'.',',') }}{% else %}0{% endif %} %</p>
+			<p>Total poblacion: {{ totalPop | number_format(0,'.',',')}}</p>
+			<p>Total Extension de uso: {% if totalPop > 0 %}{{ (totalU/totalPop*100) | number_format(0,'.',',')}}{% else %} 0{% endif %} %</p>
+		</div>
+	</div>
+	{% endif %}
+</div>
+<script type="text/javascript">
+
+	$(function () {
+	    $('#container_ext{{processOrder.getId()}}{{year}}').highcharts({
+	        chart: {
+	            type: 'column'
+	        },
+	        colors: ['#0070B3', '#757575','#FFA124'],
+	        title: {
+	            text: 'Extensión de uso año {{year}}'
+	        },
+	        subtitle: {
+		        text: 'Fuente: {{processOrder.getParams().Fuente}} {{year}}',
+		        floating: true,
+		        align: 'right',
+		        verticalAlign: 'bottom',
+		        y: 15
+		    },
+	        xAxis: {
+	            categories: [
+	            	{% for key,value in dataYear %}
+					'{{key}}',
+					{% endfor %}
+	            ],
+	            crosshair: true
+	        },
+
+	        yAxis: [{ // Primary yAxis
+	            labels: {
+	                formatter: function () {
+                        return this.value + '%';
+                    },
+	                style: {
+	                    color: Highcharts.getOptions().colors[1]
+	                }
+	            },
+	            title: {
+	                text: 'Porcentaje de afiliados {{year}}',
+	                style: {
+	                    color: Highcharts.getOptions().colors[1]
+	                }
+	            }
+	        }],
+
+	        tooltip: {
+	            headerFormat: '<span style="font-size:10px">{point.key}</span><table>',
+	            pointFormat: '<tr><td style="color:{series.color};padding:0">{series.name}: </td>' +
+	                '<td style="padding:0"><b>{point.y:,.0f}%</b></td></tr>',
+	            footerFormat: '</table>',
+	            shared: true,
+	            useHTML: true
+	        },
+	        plotOptions: {
+	            column: {
+	                pointPadding: 0.2,
+	                borderWidth: 0
+	            }
+	        },
+	        credits:{
+	            enabled:false
+	        },
+	        series: [
+				
+				{
+					name: 'Zona 1',
+					type:'spline',
+					data: [
+						{% for value in dataYear %}
+							{% if value.ext1.affiliates > 0 %}
+								{{(value.ext1.affiliateConsulted / value.ext1.affiliates*100)}},
+							{% else %}
+								0,
+							{% endif %}
+						{% endfor %}
+					]
+				},
+				{
+					name: 'Zona 2',
+					type:'spline',
+					data: [
+						{% for value in dataYear %}
+							{% if value.ext2.affiliates > 0 %}
+								{{(value.ext2.affiliateConsulted / value.ext2.affiliates*100)}},
+							{% else %}
+								0,
+							{% endif %}
+						{% endfor %}
+					]
+				},
+				{
+					name: 'Zona 3',
+					type:'spline',
+					data: [
+						{% for value in dataYear %}
+							{% if value.ext2.affiliates > 0 %}
+								{{(value.ext3.affiliateConsulted / value.ext3.affiliates*100)}},
+							{% else %}
+								0,
+							{% endif %}
+						{% endfor %}
+					]
+				},
+	        ]
+	    });
+	});
+</script>
+{% endfor %}

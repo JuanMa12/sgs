@@ -1,0 +1,25 @@
+<a class='dropdown-button btn-floating' href='#' data-activates='dropdown{{item.id}}'><i class="material-icons right">more_vert</i></a>
+
+<!-- Dropdown Structure -->
+<ul id='dropdown{{item.id}}' class='dropdown-content'>
+<li><a href="javascript:edit('{{ item.id }}')">Editar</a></li>
+{% if item.type == 1 %}
+	{% if item.status == 0 %}
+
+		<li><a href="javascript:changeStatus('{{ item.id }}',1)">Activar</a></li>
+		<li><a href="javascript:changeStatus('{{ item.id }}',3)">Bloquear</a></li>
+
+	{% elseif item.status == 1 %}
+		    
+		<li><a href="javascript:changeStatus('{{ item.id }}',0)">Inactivar</a></li>
+		<li><a href="javascript:changeStatus('{{ item.id }}',3)">Bloquear</a></li>
+
+	{% elseif item.status == 3 %}
+
+		<li><a href="javascript:changeStatus('{{ item.id }}',1)">Activar</a></li>
+		<li><a href="javascript:changeStatus('{{ item.id }}',0)">Inactivar</a></li>
+	    
+	{% endif %}
+
+{% endif %}
+</ul>

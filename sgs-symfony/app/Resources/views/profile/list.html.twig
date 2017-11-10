@@ -1,0 +1,171 @@
+{% extends 'base.html.twig' %}
+{% block title %}<i class="material-icons left hide-on-small-only">person</i>Perfiles{% endblock %}
+
+{% block content %}
+	<div class="col l9 s12">
+		<div class="card-panel">
+			<div class="row">
+				<div class="col s12">
+
+					<a class="waves-effect waves-light btn orange" href="javascript:openProfileModal()">Crear</a>
+
+					<table id="profile_table" class="striped ui table dataTable">
+						<thead>
+							<tr>
+								<th>Id</th>
+								<th>Nombre</th>
+								<th>Acciones</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td></td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div id="profile_modal" class="modal modal-fixed-footer">
+        <div class="modal-content">
+            <form id='profile_form'>
+            	<h4 class="teal-text">Formulario de Perfiles</h4>
+            	<div class="row">
+            		<div class="input-field col s12">
+						<input type="text" name="_name" id="_name" required>
+						<label for="_name">Nombre</label>
+					</div>
+            	</div>
+            	<div class="row">
+            		<p>Puede crear reportes:</p>
+            		<div class="col m6 s12">
+					    <p>
+					      <input name="create_report" type="radio" value="0" id="option_one" checked="checked"/>
+					      <label for="option_one">No</label>
+					    </p>
+				    </div>
+	            	<div class="col m6 s12">
+		            	<p>
+					      <input name="create_report" type="radio" value="1" id="option_two" />
+					      <label for="option_two">Si</label>
+					    </p>
+            		</div>
+            	</div>
+
+            	<div class="row">
+            		<p>Por favor seleccione las EPSs asociadas a este perfil.</p>
+            		<div class="col s12">
+            			{% for healthPromotion in healthPromotionEntities %}
+						    <p class="col s6">
+						      <input type="checkbox" name="healthPromotionIds[]" id="test_{{healthPromotion.getId()}}" value="{{healthPromotion.getId()}}" />
+						      <label for="test_{{healthPromotion.getId()}}">{{healthPromotion.getAlias()}}</label>
+						    </p> 
+						{% endfor %}
+            		</div>
+            	</div>			
+                
+                <input type="hidden" name="_id" value="">
+            </form>
+        </div>
+        <div class="modal-footer">
+            <a id="profile_btn" href="javascript:void(0)" class="btn orange">Guardar</a>
+        </div>
+    </div>
+
+
+{% endblock %}
+
+{% block javascripts %}
+<script type="text/javascript">
+	$(document).on('ready',function(){
+
+		$('#profile_table').dataTable({
+			"sPaginationType": "full_numbers",
+			"bProcessing": true,
+			"bServerSide": true,
+			"bLengthChange": false,
+			"sAjaxSource": "{{ path('profile_grid') }}",
+			"aoColumns": [
+				{"mRender":filterCharacters},
+				{"mRender":filterCharacters},
+				{"mRender":filterCharacters, "bSearchable": false, "bSortable": false,"width":"20%" }] ,
+			"fnServerData": function ( sSource, aoData, fnCallback ) {
+			  $.ajax( {
+			    "dataType": 'json',
+			    "type": "POST",
+			    "url": sSource,
+			    "data": aoData,
+			    "success": fnCallback
+			  } );
+			},
+		});
+
+		$("#profile_btn").on('click',function(){
+			$("#profile_form").submit()
+		})
+
+		$("#profile_form").validate({
+			ignore:'.ignore',
+			submitHandler:function(form){
+
+				toggleButton("#profile_btn")
+				$.post("{{path('profile_save') }}", $(form).serialize(), function(data){
+
+					toggleButton("#profile_btn")
+					if (data.success == true) {
+						$('#profile_modal').modal('close');
+						Materialize.toast('Se han guardado los cambios.',4000)
+						$("input[name='_id']").val(data.description)
+						
+					}else{
+						Materialize.toast(data.description,4000)
+					}
+
+				})
+			}
+		})
+
+		$('#profile_modal').modal({
+			ready: clearInputs,
+		    complete: function() {
+		        document.getElementById('profile_form').reset();
+		    	$("input[name='_id']").val('')
+		    	$("#profile_table").dataTable().fnDraw()           
+		    }
+		});
+
+	})
+
+	function openProfileModal(){
+		$('#profile_modal').modal('open');
+	}	
+
+	function edit(id){
+		$.post('{{path("profile_get_info")}}',{_id:id},function(data){
+			if(data.success = true){
+
+				$("input[name='_id']").val(id)
+				$("input[name='_name']").val(data.description.name)
+				
+				$.each(data.description.healthPromotionIds, function( index, value ) {
+				 	$('#test_'+value).prop( "checked","checked" )
+				});
+
+				$.each($("input[name='create_report']"), function(value,element ) {
+					
+					if (value == data.description.createReport) {
+						$(element).prop( "checked","checked" )
+					}else{
+						$(element).prop( "checked",false)						
+					}
+				})				
+
+				openProfileModal()
+			}
+		})
+	}
+
+</script>
+{% endblock %}

@@ -1,0 +1,79 @@
+<form id="diagnostics" class="info_params">
+    <h5 class="teal-text">Diagnosticos</h5>
+    <p>Escoja los diagnosticos con los que desea generar el reporte.</p>
+    <p class="col s12">
+      <input type="radio" name="type_diagnostic" id="option4" value="all" checked="checked"/>
+      <label for="option4">Todos</label>
+    </p>
+
+    <p class="col s12">
+      <input type="radio" name="type_diagnostic" id="option5" value="diagnostics" />
+      <label for="option5">Especificos</label>
+    </p>
+
+    <div id="specific_diagnostic" style="display:none">
+      <!--
+      <p class="col s6">
+        <input type="checkbox" class="option_autocomplete" id="option1" path-autocomplete="{{path('autocomplete_diagnostics_f')}}" checked="checked" />
+        <label for="option1">Capitulos</label>
+      </p>
+      -->
+      <p class="col s6">
+        <input type="checkbox" class="option_autocomplete" path-autocomplete="{{path('autocomplete_diagnostics_g')}}" id="option2" />
+        <label for="option2">CIE 10 3 Digitos</label>
+      </p>
+      <p class="col s6">
+        <input type="checkbox" id="option3" class="option_autocomplete" path-autocomplete="{{path('autocomplete_diagnostics_t')}}" checked="checked" />
+        <label for="option3">CIE 10 4 Digitos</label>
+      </p>
+      <div id="diagnostics_atree"></div>
+    </div>
+</form>
+
+
+<script src="{{asset('js/custom_autocomplete.js')}}"></script>
+<script src="{{asset('js/autocomplete_tree.js')}}"></script>
+
+<script type="text/javascript">
+$(function(){  
+    var infoPath = []
+    $("#specific_diagnostic").hide()
+    $('.option_autocomplete').each(function() {
+        if ($(this).is(":checked")) {
+          infoPath.push($(this).attr('path-autocomplete'));
+        }
+    })
+
+    $("#diagnostics_atree").autocompleteTree({
+       autocompletePath:infoPath,
+       infoPath:"{{path('diagnostic_tree')}}",
+       fieldName:'diagnostics'
+    })
+
+    $("input[name='type_diagnostic']").on('change',function(){
+        $("#specific_diagnostic").hide()
+        $("#diagnostics_atree").data('autocompleteTree').reset()
+        if ($(this).val() == "diagnostics") {
+          $("#specific_diagnostic").show()            
+        }
+    })
+  
+    $(".option_autocomplete").on('change',function(){
+      infoPath = []
+      $('.option_autocomplete').each(function() {
+        if ($(this).is(":checked")) {
+          infoPath.push($(this).attr('path-autocomplete'));
+
+        }
+      })
+      $("#diagnostics_atree").data('autocompleteTree').refreshData(infoPath)
+    })
+
+    $("#diagnostics").on("reset",function(){
+        $("#specific_diagnostic").hide()
+        $("#diagnostics_atree").data('autocompleteTree').reset()
+    })
+
+})
+
+</script>

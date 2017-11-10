@@ -1,0 +1,355 @@
+{% extends 'base.html.twig' %}
+{% block title %}<i class="material-icons left">insert_chart</i>Salud{% endblock %}
+{% set section = 'health' %}
+{% set color = 'blue' %}
+
+{% block content %}
+     
+    <style type="text/css">
+    .ui-autocomplete { position: absolute; cursor: default;z-index:3000 !important;}
+    </style>
+
+    {% set accessCreateReport = false %}
+    {% if (app.user.role == 2 and app.user.getProfile() is not null and app.user.getProfile().getCreateReport() == 1) or (app.user.role == 1) %}
+        {% set accessCreateReport = true %}
+    {% endif %}
+    <div class="row">
+        <div class="col m12 l3 hide-on-med-and-down">
+            <div style="position:fixed">
+                <div class="input-field">
+                    <input type="text" name="search" placeholder="Nombre">
+                </div>
+
+                <a id="search-btn" class="btn-flat"><i class="material-icons left">search</i>Buscar</a>
+
+                 <p class="valign-wrapper">
+                    <a id="filter_modal_btn" class="valign btn-flat"><i class="material-icons left">playlist_add</i>Filtrar</a>
+                </p>
+                <p>{% if accessCreateReport %}Para crear su reporte, por favor haga clic en el botón "+"{% endif %}</p>
+                <div id="report_filter">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col m12 l9 center">
+            <a class="waves-effect waves-orange btn-flat" id="btn_nextpage" style="display:none">Ver más</a>
+        </div>
+    </div>
+
+    <!-- Modal de filtros-->
+    <div id="filter_modal" class="modal bottom-sheet">
+        <div class="modal-content">
+            <div class="row">
+            {% for processOrderType in processOrderTypes %}
+                <div class="col s4 center">
+                    <button typeId="{{processOrderType.id}}" class="btn {{color}}" onclick="addFilter({{processOrderType.id}},'{{processOrderType.name}}');goSearch();" style="margin-bottom:10px">{{processOrderType.name}}</button>
+                </div>
+            {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div id="health_report_modal"></div>
+
+    {% if accessCreateReport %}
+        <div class="fixed-action-btn click-to-toggle" style="bottom: 45px; right: 24px;">
+            <a id="openModalLink" class="btn-floating btn-large red tooltipped"  href="javascript:void(0)" data-tooltip="Crear Reporte" data-position="left"> 
+                <i class="large material-icons">add</i>
+            </a>
+        </div>
+    {% endif %}
+
+{% endblock %}
+
+{% block javascripts %}
+
+    <script src="{{asset('js/report_order.js')}}"></script>
+    <script src="{{asset('js/autocomplete_list.js')}}"></script>
+    <script src="{{asset('js/socket.io-1.4.5.js')}}"></script>
+
+    <script type="text/javascript" src="{{asset('js/jquery-ui.min.js')}}"></script>
+    <script type="text/javascript" src="{{asset('js/custom_autocomplete.js')}}"></script>
+
+    <script src="{{asset('js/wizard.js')}}"></script>
+    <script type="text/javascript">
+        $(function(){
+
+            $("#view_explorer").hide()
+            //inicializacion de la modal
+            $("#filter_modal").modal()
+
+            $("#filter_modal_btn").on('click',function(){
+                var arrFilters = $.map($("#report_filter").find('.filter'),function(element,index){
+                    return $(element).attr('value')
+                }) 
+
+                $("#filter_modal").find('button').each(function(element,index){
+                    if(arrFilters.indexOf($(this).attr('typeId')) > -1 ){
+                        $(this).prop('disabled',true)
+                    }else{
+                        $(this).prop('disabled',false)
+                    }
+                }) 
+                $("#filter_modal").modal('open')
+            })
+            goSearch()
+
+            /**
+             * WIZARD MODULO DE SALUD
+             */
+            $("#health_report_modal").wizard([
+                {
+                    name:"Extension de uso",
+                    description:"La extensión de uso expresa la proporción de usuarios que consultaron en el periodo de tiempo.  Se debe presentar por Zona de Riesgo (Normal, Dispersión y concentración), Grupos quinquenales; agregado por GESTARSALUD; y desagregado por EPS Asociada.",
+                    params:[
+                        {name:'periods',icon:'date_range'},
+                        {name:'source',icon:'data_usage'},
+                        {name:'eps',icon:'business'},                        
+                    ],
+                    htmlParams:"{{ path('report_order_params_html')}}",
+                    savePath:"{{ path('health_report_save') }}",
+                    typeOrder:22
+                },
+                {
+                    name:"Costos de atención por diagnóstico",
+                    description:"Reporte de costos de atención segun diagnóstico, presenta número de usuarios atendidos, costos de procedimientos, medicamentos e insumos para la atención de un diagnóstico o grupo de diagnósticos. Se puede generar  agregado por GESTARSALUD; desagregado por EPS Asociada; Consolidado por Zona de Riesgo (Normal, Dispersión y Concentración).",
+                    params:[
+                        {name:'periods',icon:'date_range'},
+                        {name:'source',icon:'data_usage'},
+                        {name:'eps',icon:'business'},
+                        {name:'diagnostics',icon:'verified_user'},                        
+                    ],
+                    htmlParams:"{{ path('report_order_params_html') }}",
+                    savePath:"{{ path('health_report_save') }}",
+                    typeOrder:28
+                },
+                {
+                    name:"Costo de procedimientos",
+                    description:"Reporte de costos de uno o varios procedimientos, presenta número de usuarios atendidos y los costos de procedimientos.  Se puede generar  agregado por GESTARSALUD; desagregado por EPS Asociada; Consolidado por Zona de Riesgo (Normal, Dispersión y Concentración).",
+                    params:[
+                        {name:'periods',icon:'date_range'},
+                        {name:'source',icon:'data_usage'},
+                        {name:'eps',icon:'business'},
+                        {name:'procedures',icon:'grain'},                        
+                    ],
+                    htmlParams:"{{ path('report_order_params_html') }}",
+                    savePath:"{{ path('health_report_save') }}",
+                    typeOrder:29
+                },
+                {
+                    name:"Intensidad de uso",
+                    description:"La intensidad de uso indica el número de atenciones de cada tipo de servicio que recibe cada persona atendida.  Se puede generar por Zona de Riesgo (Normal, Dispersión y concentración), Grupos quinquenales; agregado por GESTARSALUD; y desagregado por EPS Asociada.",
+                    params:[
+                        {name:'periods',icon:'date_range'},
+                        {name:'source',icon:'data_usage'},
+                        {name:'eps',icon:'business'},                        
+                    ],
+                    htmlParams:"{{ path('report_order_params_html') }}",
+                    savePath:"{{ path('health_report_save') }}",
+                    typeOrder:30
+                }, 
+                {
+                    name:"Frecuencia de uso",
+                    description:"El indicador de frecuencia de uso examina las atenciones promedio por afiliado en un periodo de tiempo.   Se debe presentar por Zona de Riesgo (Normal, Dispersión y concentración), Grupos quinquenales; agregado por GESTARSALUD; y desagregado por EPS Asociada.",
+                    params:[
+                        {name:'periods',icon:'date_range'},
+                        {name:'source',icon:'data_usage'},
+                        {name:'eps',icon:'business'},                        
+                    ],
+                    htmlParams:"{{ path('report_order_params_html')}}",
+                    savePath:"{{ path('health_report_save') }}",
+                    typeOrder:21
+                },
+                {
+                    name:"Perfil epidemiológico",
+                    description:"Reporte que describe el perfil de morbilidad atendida en la población de afiliados. Se puede generar por Zona de Riesgo (Normal, Dispersión y concentración), Grupos quinquenales; agregado por GESTARSALUD; y desagregado por EPS Asociada.",
+                    params:[
+                        {name:'periods',icon:'date_range'},
+                        {name:'source',icon:'data_usage'},
+                        {name:'eps' ,icon:'business'},
+                        {name:'quinquennialGroup' ,icon:'face'},
+                        {name:'georeferencing',icon:'location_on'},                        
+                    ],
+                    htmlParams:"{{ path('report_order_params_html') }}",
+                    savePath:"{{ path('health_report_save') }}",
+                    typeOrder:38
+                },
+                {
+                    name:"Reporte por ámbito",
+                    description:"Reporte que presenta los costos de atenciones según ámbitos de atención. Se puede generar por Zona de Riesgo (Normal, Dispersión y concentración), Grupos quinquenales; agregado por GESTARSALUD; y desagregado por EPS Asociada.",
+                    params:[
+                        {name:'periods',icon:'date_range'},
+                        {name:'source',icon:'data_usage'},
+                        {name:'eps' ,icon:'business'},
+                        {name:'georeferencing',icon:'location_on'},                        
+                    ],
+                    htmlParams:"{{ path('report_order_params_html') }}",
+                    savePath:"{{ path('health_report_save') }}",
+                    typeOrder:45
+                },
+                {
+                    name:"Reporte por modalidad",
+                    description:"Reporte que presenta los costos de atenciones según modalidades de contratación. Se puede generar por Zona de Riesgo (Normal, Dispersión y concentración), Grupos quinquenales; agregado por GESTARSALUD; y desagregado por EPS Asociada.",
+                    params:[
+                        {name:'periods',icon:'date_range'},
+                        {name:'source',icon:'data_usage'},
+                        {name:'eps' ,icon:'business'},
+                        {name:'georeferencing',icon:'location_on'},                        
+                    ],
+                    htmlParams:"{{ path('report_order_params_html') }}",
+                    savePath:"{{ path('health_report_save') }}",
+                    typeOrder:46
+                },
+            ])
+
+            $("#openModalLink").on('click',function(){
+                $("#health_report_modal").data('wizard').openModal()
+            })
+
+            $('#btn_nextpage').on('click',updateReportList)
+
+            $("#search-btn").on('click',goSearch)
+            
+            var socket = io.connect('{{public_socket_io}}/health/reports')
+
+            socket.on('update',function(obj){
+                var element = $('div[process-order-id="'+obj.id+'"]')
+                if(element){
+                    element.data('reportOrder').refreshData(obj)
+                }
+            })
+           
+        })
+
+        function showSection(tagid){
+            hideSections()
+
+            $(`#${tagid}`).show()
+        }
+
+        function hideSections(){
+            $("#section_1").hide()
+        }
+
+        var currentPage = 0
+
+        /**
+         * Funcion que actualiza el listado de reportes
+         */
+        function updateReportList(){
+            
+            var pendingIcn = $(`<div class='col s12'>&nbsp;</div>
+                                <div class='col s12 center'>
+                                    <div class="preloader-wrapper small active">
+                                      <div class="spinner-layer spinner-green-only">
+                                        <div class="circle-clipper left">
+                                          <div class="circle"></div>
+                                        </div><div class="gap-patch">
+                                          <div class="circle"></div>
+                                        </div><div class="circle-clipper right">
+                                          <div class="circle"></div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                </div>`)
+
+            $("#report_content").append(pendingIcn);
+            
+            // Se sacan los id de los filtros añadidos
+            var arrFilters = $.map($("#report_filter").find('.filter'),function(element,index){
+                return $(element).attr('value')
+            }) 
+
+            if(arrFilters.length == 0){// si no hay ninguno se veran todos
+                arrFilters = $.map($("#filter_modal").find('button'),function(element,index){
+                    return $(element).attr('typeId')
+                }) 
+            } 
+
+            var data2send = {
+                "filters": arrFilters,
+                "page":currentPage + 1,
+                "word": $("input[name='search']").val()
+            }
+
+            $.post("{{path('report_order_info',{module:'health'})}}",data2send,function(data){
+                pendingIcn.remove()
+
+                if(data.success == true && data.description.length > 0){
+
+                    $.each(data.description,function(index,obj){
+                        var element = $('div[process-order-id="'+obj.id+'"]')
+                        if (element.length == 0) {
+                            element = $("<div>")
+                            element.reportOrder(obj)
+                            $("#report_content").append(element)
+                        }else{
+                            element.data('reportOrder').refreshData(obj)
+                        }   
+                    })
+
+                    $("#btn_nextpage").show()
+                    if(data.description.length < 10){
+                        $("#btn_nextpage").hide()
+                    }
+                    
+                    currentPage++
+                }else{
+                    $("#report_content").html(`<b>Lo sentimos.</b> 
+                      <p>No se encontraron datos relacionados.</p>`)
+                }
+            })
+        }  
+
+        /**
+         * Funcion que añade un filtro
+         * @param {Number} orderTypeId Id de el tipo de ordern
+         * @param {String} name        Nombre del tipo de orden
+         */
+        function addFilter(orderTypeId,name){
+            
+            $("body, html").animate({
+                scrollTop: ($("#subtitle").offset().top - 70)
+            },500)
+
+            $("#filter_modal").modal('close')
+
+            var element = $(`
+                <p class="filter valign-wrapper" value="${orderTypeId}">
+                    <i class="material-icons {{color}}-text" style="cursor:pointer">delete</i>
+                    <span class="valign">${name}</span>
+                </p>
+                `)
+
+            var deleteButton = element.find('i')
+            deleteButton.on('click',function(){
+                element.remove()
+                goSearch()
+
+                $("#subtitle").html('Personalizada')
+                if ($("#report_filter").html() == "") {
+                    $("#subtitle").html('General')
+                }
+                
+                $("body, html").animate({
+                    scrollTop: ($("#subtitle").offset().top - 70)
+                },500)
+            })
+
+            $("#subtitle").html('Personalizada')
+            $("#report_filter").append(element)
+        } 
+
+        /**
+         * Funcion que empieza una nueva
+         */
+        function goSearch(){
+            $("#report_content").html("")
+            currentPage = 0
+            updateReportList()
+        }  
+
+    </script>
+{% endblock %}

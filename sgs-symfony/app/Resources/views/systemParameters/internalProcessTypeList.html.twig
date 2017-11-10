@@ -1,0 +1,130 @@
+{% extends 'base.html.twig' %}
+{% block title %}<i class="material-icons left hide-on-small-only">low_priority</i>Procesos internos{% endblock %}
+
+{% block content %}	
+	<div class="col l9 s12">
+		<div class="card-panel">
+			<div class="row">
+				<div class="col s12">
+
+					<a class="waves-effect waves-light btn orange" href="javascript:openInternalProcessModal()">Crear</a>
+
+					<table id="internal_process_table" class="striped ui table dataTable">
+						<thead>
+							<tr>
+								<th>Id</th>
+								<th>Nombre</th>
+								<th>Descripción</th>
+								<th>Acciones</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td></td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div id="internal_process_form_modal" class="modal modal-fixed-footer">
+		<div class="modal-content">
+			<h4>Formulario de Tipos de Procesos Internos</h4>
+			<form id="internal_process_form">
+				<div class="input-field">
+					<input type="text" name="_name" id="name" required>
+					<label for="name">Nombre</label>
+				</div>
+				<div class="input-field">
+					<textarea id="textarea1" class="materialize-textarea" name="_description"></textarea>
+          			<label for="textarea1">Descripcion</label>
+				</div>
+				<input type="hidden" name="_id" value="">
+			</form>
+		</div>
+		<div class="modal-footer">
+			<a id="internal_process_form_button" href="javascript:void(0)" class="btn orange">Guardar</a>
+		</div>
+	</div>
+{% endblock %}
+
+{% block javascripts %}
+
+<script type="text/javascript">
+	$(document).on('ready',function(){
+
+		$('#internal_process_table').dataTable({
+			"sPaginationType": "full_numbers",
+			"bProcessing": true,
+			"bServerSide": true,
+			"bLengthChange": false,
+			"sAjaxSource": "{{ path('internal_process_grid') }}",
+			"aoColumns": [
+				{"mRender":filterCharacters},
+				{"mRender":filterCharacters},
+				{"mRender":filterCharacters},
+				{"mRender":filterCharacters, "bSearchable": false, "bSortable": false,"width":"20%" }] ,
+			"fnServerData": function ( sSource, aoData, fnCallback ) {
+			  $.ajax( {
+			    "dataType": 'json',
+			    "type": "POST",
+			    "url": sSource,
+			    "data": aoData,
+			    "success": fnCallback
+			  } );
+			},
+		})
+
+		$("#internal_process_form_button").on('click',function(){
+			$("#internal_process_form").submit()
+		})
+
+		$("#internal_process_form").validate({
+			submitHandler:function(form){
+
+				toggleButton("#internal_process_form_button")
+				$.post("{{path('internal_process_save') }}", $(form).serialize(), function(data){
+					toggleButton("#internal_process_form_button")
+					if (data.success == true) {
+						$('#internal_process_form_modal').modal('close')
+						Materialize.toast('Se han guardado los cambios.',4000)
+						$("input[name='_id']").val(data.description)
+						
+					}else{
+						Materialize.toast(data.description,4000)
+					}
+
+				})
+			}
+		})
+
+		$('#internal_process_form_modal').modal({
+			ready: clearInputs,
+		    complete: function() {
+		        document.getElementById('internal_process_form').reset();
+		    	$("input[name='_id']").val('')
+		    	$("#internal_process_table").dataTable().fnDraw()          
+		    }
+		});
+	})
+
+	function openInternalProcessModal(){
+		$('#internal_process_form_modal').modal('open')
+	}
+
+
+	function edit(id){
+		$.post('{{path("internal_process_get_info")}}',{_id:id},function(data){
+			if(data.success = true){
+				$("input[name='_id']").val(id)
+				$("input[name='_name']").val(data.description.name)
+				$("#textarea1").val(data.description.description)
+				Materialize.updateTextFields();
+				openInternalProcessModal()
+			}
+		})
+	}
+</script>
+{% endblock %}

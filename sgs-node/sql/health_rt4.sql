@@ -1,0 +1,22 @@
+CREATE TABLE `health_rt4` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `affiliation_id` int(11) DEFAULT NULL,
+  `diagnostic_main_code` varchar(45) DEFAULT NULL,
+  `diagnostic_second_code` varchar(45) DEFAULT NULL,
+  `atc_date` bigint(20) DEFAULT NULL,
+  `atc_code` varchar(45) DEFAULT NULL,
+  `atc_concentration_quantity_dispensed` varchar(45) DEFAULT NULL,
+  `atc_unit_concentration` varchar(45) DEFAULT NULL,
+  `atc_pharmaceutical_form` varchar(45) DEFAULT NULL,
+  `atc_unit_measure_dispense` varchar(45) DEFAULT NULL,
+  `atc_quantity_dispensed` varchar(45) DEFAULT NULL,
+  `atc_provision_ambit` varchar(45) DEFAULT NULL,
+  `atc_payment_type` varchar(45) DEFAULT NULL,
+  `atc_price` varchar(45) DEFAULT NULL,
+  `atc_user_value` varchar(45) DEFAULT NULL,
+  `health_entity_code` varchar(45) DEFAULT NULL,
+  `observations` varchar(45) DEFAULT NULL,
+  `process_id` varchar(45) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `afiliation_idx` (`affiliation_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;

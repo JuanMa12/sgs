@@ -1,0 +1,31 @@
+# This file is a "template" of what your parameters.yml file should look like
+# Set parameters here that may be different on each deployment target of the app, e.g. development, staging, production.
+# http://symfony.com/doc/current/best_practices/configuration.html#infrastructure-related-configuration
+parameters:
+    database_host:     127.0.0.1
+    database_port:     ~
+    database_name:     sgs
+    database_user:     root
+    database_password: admin  
+    # You should uncomment this if you want use pdo_sqlite
+    # database_path: "%kernel.root_dir%/data.db3"
+
+    mailer_encryption: tls
+    mailer_transport:  smtp
+    mailer_port: 587
+    mailer_host:        smtp.gmail.com
+    mailer_auth_mode:  login
+    mailer_user:        gdgestarsalud@gmail.com
+    mailer_password:    Gestar2015*
+    mail_sender: GDgestar@gmail.com
+
+    # A secret key that's used to generate certain security-related tokens
+    secret:            ThisTokenIsNotSoSecretChangeIt
+
+    # ldap host
+    ahelper_host: 'http://192.168.1.222:3000'
+
+    # process engine
+    files_path: /home/julieth/Documentos/
+    engine_path: http://localhost:8080
+    public_socket_io: http://localhost:3131

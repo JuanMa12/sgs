@@ -1,0 +1,142 @@
+<div class="row">
+	<div class="col s12">
+		<h5 class="orange-text">{{processOrder.getName()}}</h5>  
+        <p><strong>Creado por: </strong>{{processOrder.getUser().getName()}}</p>   
+        <h5 class="teal-text">Tipo de Reporte: {{processOrder.getProcessOrderType().getName()}}</h5>   
+		<p>{{processOrder.getProcessOrderType().getDescription()}}</p> 
+	</div>	
+</div>
+{% if params is defined and params == true %}
+	<div class="row hide-on-med-and-down">
+		{% include '/general/params.html.twig' with {processOrder:processOrder} %}
+	</div>
+{% endif %}
+{% for year,yearData in data %}
+<div class="row">
+	<div class="col s12">
+		<div class="card-panel">
+			<div id="container_lma{{processOrder.getId()}}{{year}}" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
+		</div>
+	</div>
+</div>
+<script type="text/javascript">
+
+	$(function () {
+	    $('#container_lma{{processOrder.getId()}}{{year}}').highcharts({
+	        chart: {
+	            type: 'column'
+	        },
+	        colors: ['#FFA939','#0070B3'],
+	        title: {
+	            text: 'Ingresos LMA {{year}}'
+	        },
+			subtitle: {
+			    text: 'Fuente: {{processOrder.getParams().Fuente}} {{year}}',
+			    floating: true,
+			    align: 'right',
+			    verticalAlign: 'bottom',
+			    y: 15
+			},
+	        xAxis: {
+	            categories: [
+	            	{% for value in yearData.ageRanges %}
+					'{{value}}',
+					{% endfor %}
+	            ],
+	            crosshair: true
+	        },
+	        yAxis: {
+	            title: {
+	                text: 'Valor'
+	            }
+	        },
+
+	        yAxis: [{ // Primary yAxis
+	            labels: {
+	                format: '{value}',
+	                style: {
+	                    color: Highcharts.getOptions().colors[1]
+	                }
+	            },
+	            title: {
+	                text: 'Afiliados',
+	                style: {
+	                    color: Highcharts.getOptions().colors[1]
+	                }
+	            }
+	        }, { // Secondary yAxis
+	            title: {
+	                text: 'LMA',
+	                style: {
+	                    color: Highcharts.getOptions().colors[0]
+	                }
+	            },
+	            labels: {
+	                format: '$ {value:,.0f}',
+	                style: {
+	                    color: Highcharts.getOptions().colors[0]
+	                }
+	            },
+	            opposite: true
+	        }],
+
+	        tooltip: {
+
+	            headerFormat: '<span style="font-size:10px">{point.key}</span><table>',
+	            pointFormat: '<tr><td style="color:{series.color};padding:0">{series.name}: </td>' +
+	                '<td style="padding:0"><b> {point.y:,.0f}</b></td></tr>',
+	            footerFormat: '</table>',
+	            shared: true,
+	            useHTML: true
+	        },
+	        plotOptions: {
+	            column: {
+	                pointPadding: 0.2,
+	                borderWidth: 0
+	            }
+	        },
+	        credits:{
+	            enabled:false
+	        },
+	        plotOptions: {
+	            series: {
+	                dataLabels: {
+	                    enabled: true,
+	                    padding:0,
+		                formatter: function () {
+		                	if (this.series.name == 'Cantidad') {
+		                    	if (this.point.y > 0) {
+		                    		return ((this.point.y / {{yearData.total}}) * 100).toFixed(1) +'%'
+		                    	}else{
+		                    		0 +'%'
+		                    	}
+		                	}
+		                }   
+		            }
+		        }
+	        },
+	        series: [
+	        	{
+					name: 'Cantidad',
+					type:'column',
+					data: [
+						{% for value in yearData.q %}
+						{{value}},
+						{% endfor %}
+					]
+				},
+				{
+					name: 'Ingresos',
+					type:'spline',
+					yAxis: 1,
+					data: [
+						{% for value in yearData.lma %}
+						{{value}},
+						{% endfor %}
+					]
+				}
+	        ]
+	    });
+	});
+</script>
+{% endfor %}

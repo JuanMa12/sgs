@@ -1,0 +1,47 @@
+{% extends 'base.html.twig' %}
+{% block title %}Administración{% endblock %}
+
+{% block content %}
+	<div class="row">
+	    <div class="col s12 m5">    		    	
+		    <div class="card-panel">
+		        <h5 class="teal-text">Usuarios</h5>
+		        <div class="collection">
+		            <a href="{{path('user_list')}}" class="collection-item"><i class="material-icons left">people</i> Usuarios</a>
+		            <a href="{{path('profile_list')}}" class="collection-item"><i class="material-icons left">person</i> Perfiles</a>
+		        </div>
+		    </div>
+	    </div>
+	    <div class="col s12 m5">
+	    	<div class="card-panel">	    	
+		        <h5 class="teal-text">Parametros</h5>
+		        <div class="collection">
+			        <a href="{{ path('municipality_list') }}" class="collection-item"><i class="material-icons left">map</i> Municipios</a>
+			        <a href="{{ path('health_promotion_list') }}" class="collection-item"><i class="material-icons left">business</i> EPSs</a>
+			        <a href="{{ path('guild_list') }}" class="collection-item"><i class="material-icons left">account_balance</i> Gremios</a>
+			        <a href="{{ path('diagnostic_list') }}" class="collection-item"><i class="material-icons left">verified_user</i> Diagnosticos</a>
+			        <a href="{{ path('health_procedures_list') }}" class="collection-item"><i class="material-icons left">grain</i> Procedimientos</a>
+			        <a href="{{ path('medicine_list') }}" class="collection-item"><i class="material-icons left">battery_std</i> Medicamentos</a>
+				</div>
+	    	</div> 
+	    </div>
+	</div>
+	<div class="row">
+	    <div class="col s12 m5">    		    	
+		    <div class="card-panel">
+		        <h5 class="teal-text">Procesos</h5>
+		        <div class="collection">
+		            <a href="{{path('process_list')}}" class="collection-item"><i class="material-icons left">trending_up</i> Listado</a>
+		        </div>
+		    </div>
+	    </div>
+	    <div class="col s12 m5">    		    	
+		    <div class="card-panel">
+		        <h5 class="teal-text">Log</h5>
+		        <div class="collection">
+		            <a href="{{path('log_activity_list')}}" class="collection-item"><i class="material-icons left">format_align_center</i> Listado</a>
+		        </div>
+		    </div>
+	    </div>
+	</div>
+{% endblock %}

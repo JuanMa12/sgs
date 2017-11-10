@@ -1,0 +1,19 @@
+<div class="col s12" style="overflow-y: auto; height:280px;">
+    <table class="table" id="process_params_table">
+        <thead>
+            <tr>
+                <td class="teal-text">Parametro</td>
+                <td class="teal-text">Descripción</td>
+            </tr>       
+        </thead>
+        <tbody>
+            {% for key,item in processOrder.getParams() %}
+                <tr>
+                   <td>{{key}}:</td>
+                   <td>{{item|join(',')}}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+

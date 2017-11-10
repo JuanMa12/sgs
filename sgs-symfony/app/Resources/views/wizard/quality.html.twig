@@ -1,0 +1,32 @@
+<form id="quality" class="info_params">
+    <h5 class="teal-text">Calidad</h5>
+    <p>Los registros en la base de datos cuentan con una marca de calidad. Escoja las marcas de calidad para los registros que desea excluir del reporte.</p>
+    <div class="col s12">
+      <p>
+        <input type="checkbox" name="qualityNumbers[]" id="quality_lma" value="4" checked />
+        <label for="quality_lma">Soporte LMA</label>
+      </p>
+      <p>Hace referencia a los usarios que no tienen soporte de LMA.</p>
+    </div>
+    <div class="col s12">
+      <p>
+        <input type="checkbox" name="qualityNumbers[]" id="quality_duplicate" value="5" checked/>
+        <label for="quality_duplicate">Duplicados</label>
+      </p>
+      <p>Hace referencia a los registros de actividades duplicados</p>
+    </div>
+    <div class="col s12">
+      <p>
+        <input type="checkbox" name="qualityNumbers[]" id="quality_value" value="6" checked/>
+        <label for="quality_value">Costos</label>
+        <p>Hace referencia a los registros de actividades con valor mayor a 100 millones.</p>
+      </p>
+    </div>
+    <div class="col s12">
+      <p>
+        <input type="checkbox" name="qualityNumbers[]" id="quality_quantity" value="7" checked/>
+        <label for="quality_quantity">Cantidades</label>
+        <p>Hace referencia a los registros de actividades mayores a 100 agrupando por forma de reconocimiento</p>
+      </p>
+    </div>
+</form>

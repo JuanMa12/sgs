@@ -1,0 +1,6 @@
+<a class='dropdown-button btn-floating' href='#' data-activates='dropdown{{item.idOrder}}'><i class="material-icons right">more_vert</i></a>
+
+<!-- Dropdown Structure -->
+<ul id='dropdown{{item.idOrder}}' class='dropdown-content'>
+<li><a href="javascript:getInfoProcessError('{{ path('process_error_detail',{id:item.idOrder}) }}')">Incidencias</a></li>
+</ul>

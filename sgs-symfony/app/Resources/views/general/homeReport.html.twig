@@ -1,0 +1,167 @@
+{% extends 'base.html.twig' %}
+{% block title %}<i class="material-icons left">multiline_chart</i> Reportes{% endblock %}
+{% set section = 'health' %}
+
+{% block content %}
+    <div class="row" id="preloader_control">
+        <div class="col s12 center">
+
+            <div class="preloader-wrapper active">
+                <div class="spinner-layer spinner-blue-only">
+                    <div class="circle-clipper left">
+                        <div class="circle"></div>
+                    </div><div class="gap-patch">
+                    <div class="circle"></div></div>
+                    <div class="circle-clipper right">
+                        <div class="circle"></div>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+
+    <input type="hidden" id="id_process" value="{{processOrder.getId()}}">
+    <div class="row">
+        <div class="col s12 m9" id="_chart_data_report"></div>
+        <div class="col s12 m3">
+            <div style="position:fixed">
+                {% if processOrder.getProcessOrderType().getId() == 3 or processOrder.getProcessOrderType().getId() == 4 %}
+                    <div class="input-field col s12">
+                        <select id="chart_style">
+                            <option value="bars">Barras</option>
+                            <option value="pie">Pastel</option>
+                        </select>
+                    </div>            
+                {% endif %}
+                {% if app.user == processOrder.getUser() %}
+                    <p>
+                        <a href="#" id="deleteAction" class="black-text">Eliminar<i class="material-icons left orange-text">delete_forever</i></a>
+                    </p>
+                    <p>
+                        <a href="#" id="updateAction" class="black-text">Actualizar datos<i class="material-icons left blue-text">update</i></a>
+                    </p>
+                {% endif %}
+
+                {% if processOrder.getMetaData().endPoint is defined %}
+                    <p>
+                    <a href="{{processOrder.getMetaData().endPoint}}" class="black-text">Descargar datos<i class="material-icons left green-text">file_download</i></a>
+                    </p>
+                {% endif %}
+                {% set title = 'Destacar' %}
+                {% set color = '' %}
+                {% for userProcessOrder in app.user.getUserProcessesOrder() %}
+                    {% if userProcessOrder.getProcessOrder().getId() == processOrder.getId() %}
+                        {% set title = 'Quitar Destacado' %}
+                        {% set color = 'red-text' %}
+                    {% endif %}
+                    
+                {% endfor %}
+                <p>
+                    <a href="#" id="favoriteAction" class="black-text"><span>{{title}}</span><i class="material-icons left {{color}}" id="icon_salient">star</i></a>
+                </p>
+            </div>
+        </div>
+    </div>
+    <div id="mprop" class="modal">
+        <div class="modal-content">
+            <h5 class="teal-text" id="mprop-message">Modal Header</h5>
+        </div>
+        <div class="modal-footer">
+            <a href="#!" id="mprop_agree" class="btn-flat">Confirmar</a>
+            <a href="#!" class=" modal-action modal-close waves-effect waves-green btn-flat">Cancelar</a>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/modules/exporting.js"></script>
+    <script src="https://code.highcharts.com/modules/drilldown.js"></script>
+
+    <script type="text/javascript">
+        var orderId
+        $(function(){
+            $('select').material_select()
+            orderId = $("#id_process").val() 
+
+            $('#mprop').modal({
+                ready: clearInputs,
+            });
+
+            $("#chart_style").on('change',function(){
+                getDataHomeReport()
+            })
+
+            getDataHomeReport()
+
+            $("#deleteAction").on('click',function(){
+                openPrompModal('Realmente quiere eliminar este reporte?',changeStatus,4)
+            }) 
+
+            $("#favoriteAction").on('click',function(){
+                salientSaveProcess(orderId)    
+            })
+
+            $("#updateAction").on('click',function(){
+                openPrompModal('Realmente quiere actualizar este reporte?',changeStatus,0)
+            })            
+        })
+
+        function getDataHomeReport(){
+            $("#preloader_control").show()
+            $("#_chart_data_report").html('')
+
+            var style = $('#chart_style').val()
+
+            $.post("{{path('report_order_data')}}",{_id:orderId,style:style},function(data){
+                $("#preloader_control").hide()
+                if(data.success == true){
+                    
+                    $("#_chart_data_report").append(data.description)
+                    
+                }
+            })
+        }
+
+        function openPrompModal(message,action,params){
+            $("#mprop").find("#mprop_agree").off("click")
+            $("#mprop").find("#mprop_agree").on("click",function(){
+               action(params)
+            })
+            $("#mprop").find("#mprop-message").html(message)
+
+            $('#mprop').modal('open')
+        }
+
+        var changeStatus = function(status){       
+            $.post("{{path('process_status_save')}}",{id:orderId,status:status},function(data){
+                if(data.success == true){
+                    //redireccion al listado
+                    document.location.href = data.description
+                }else{
+                    $('#mprop').modal('close')
+                    Materialize.toast(data.description, 4000)                
+                }
+            })
+        }
+        
+        //Guarda los reportes favoritos del usuario     
+        var salientSaveProcess = function(id){
+            $.post("{{path('process_salient_save')}}",{_id:id},function(data){
+                if(data.success == true){
+                    if (data.description == 1) {
+                        $(`#icon_salient`).removeClass('red-text')
+                        $(`#favoriteAction`).find('span').html('Destacar')
+                    }else{
+                        $(`#icon_salient`).addClass('red-text')                      
+                        $(`#favoriteAction`).find('span').html('Quitar Destacado')
+                    }
+                }else{
+                    Materialize.toast(data.description, 4000)
+                }
+            })
+        }
+
+    </script>
+{% endblock %}

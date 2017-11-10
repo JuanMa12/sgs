@@ -1,0 +1,30 @@
+<ul id="nav-mobile" class="side-nav fixed custom-snav transparent">
+    <div class="hide-on-large-only">
+        <li class="black-text" style="padding:0px 16px;">{{app.user.name}}</li>
+    </div>
+    <li><a href="{{path('homepage')}}"><i class="material-icons left purple-text">home</i> Inicio</a></li>
+    <li><a href="{{path('finantial_home_report')}}" ><i class="material-icons left pink-text">trending_up</i> Financiero</a></li>
+    <li><a href="{{path('health_home_report')}}" ><i class="material-icons left blue-text">add_box</i> Salud</a></li>
+    <li class="no-padding">
+        <ul class="collapsible collapsible-accordion">
+          <li>
+            <a class="collapsible-header {% if section is defined and section == 'process' %}active{% endif %}">Procesos<i class="material-icons left grey-text">extension</i></a>
+
+            <div class="collapsible-body">
+              <ul>
+                <li><a href="{{path('health_process_home')}}">Salud<i class="material-icons left grey-text">keyboard_arrow_right</i></a></li>
+              </ul>
+            </div>
+          </li>
+        </ul>
+    </li>
+
+    {% if 'ROLE_ADMIN' in app.user.getRoles() %}    
+      <li><a href="{{path('admin_home')}}"><i class="material-icons left grey-text">settings</i> Administración</a></li> 
+    {% endif %}
+
+    <div class="hide-on-large-only">
+        <li><a href="{{path('profile_form')}}"><i class="material-icons left orange-text">account_box</i>Perfil</a></li>
+        <li><a href="{{path('logout')}}"><i class="material-icons left">power_settings_new</i>Cerrar Sesión</a></li>
+    </div>
+</ul>

@@ -1,0 +1,41 @@
+<form id="quinquennialGroup" class="info_params">
+    <h5 class="teal-text">Grupo Quinquenal</h5>
+    <p>Escoja el grupo o los grupos quinquenales que debe incluir en el reporte.</p>
+    <p>
+      <input name="type_select_qg" type="radio" id="test3" value="all" checked="checked" />
+      <label for="test3">Todas</label>
+    </p>
+    
+    <p>
+      <input name="type_select_qg" type="radio" id="test1" value="q_group"/>
+      <label for="test1">Especificas</label>
+    </p>
+    
+    <div id="qg_table" style="display:none">
+        {% for qGroup in quinquennialGroups %}
+          <p class="col m6 s12">
+              <input type="checkbox" name="quinquennial_groups[]" id="q_group{{qGroup.getId()}}" value="{{qGroup.getId()}}" />
+              <label for="q_group{{qGroup.getId()}}">{{qGroup.getName()}}</label>
+          </p>            
+        {% endfor %}
+    </div>
+</form>
+{% block javascripts %}
+<script type="text/javascript">
+    $(function(){        
+
+        $("input[name='type_select_qg']").on('change',function(){
+            $("#qg_table").hide()
+            if ($(this).val() == "q_group") {
+                $("#qg_table").show()                
+            }
+        })
+
+        $("#quinquennialGroup").on("reset",function(){
+            $("#qg_table").hide()
+        })
+ 
+    })
+
+</script>
+{% endblock %}

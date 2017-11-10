@@ -1,0 +1,135 @@
+{% extends 'base.html.twig' %}
+{% block title %}<i class="material-icons left">account_box</i> Perfil{% endblock %}
+
+{% block content %}
+<div class="card-panel">
+    <div class="row">
+        <div class="col s12">
+            <form id="profile_form">
+                <div id="interface_message"></div>
+                <h5 class="teal-text">Datos generales</h5>
+                <div class="input-field">
+                    <input type="text" 
+                        id="_name"
+                        name="_name"
+                        value="{{app.user.name}}" 
+                        required>
+                    <label for="_name">Nombre</label>
+                </div>
+
+                <div class="input-field">
+                    <input type="email" 
+                        id="_email"
+                        name="_email"
+                        value="{{app.user.mail}}" 
+                        required>
+                    <label for="_email">Correo electronico</label>
+                </div>
+
+                <button class="btn" {% if app.user.type == 2 %}disabled{% endif %}>Guardar</button>
+            </form>
+
+            <h5 class="teal-text">Datos de acceso</h5>
+            <div class="input-field">
+                <input type="text" value="{{app.user.username}}" id="_username" disabled>
+                <label for="_username">Username</label>
+            </div>
+            <button class="btn" id="changePasswordAction" data-target="changePasswordModal" {% if app.user.type == 2 %}disabled{% endif %}>Cambiar contraseña</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal modal-fixed-footer" id="changePasswordModal">
+    <div class="modal-content">
+        <h4 class="modal-title">Cambiar Contraseña</h4>
+
+        <p>Para cambiar tu contraseña por favor favor llena el siguiente formulario.</p>
+        
+        <form id="changePasswordForm">
+            <div class="input-field">
+                <input 
+                    type="password" 
+                    class="form-control pwcheck" 
+                    placeholder="Nueva Contraseña"
+                    id="_password"          
+                    name="_password"                                        
+                    required autofocus>
+            </div>  
+            <div class="input-field">
+                <input 
+                    type="password" 
+                    class="form-control" 
+                    placeholder="Confirmar Nueva Contraseña"                     
+                    name="_cpassword"   
+                    id="_cpassword"                                     
+                    required autofocus>
+            </div>
+        </form>
+        <div id="password_form_message"></div>
+    </div>          
+    <div class="modal-footer">
+        <button id="password_update_button" class="btn">Cambiar contraseña</button>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block javascripts %}
+<script type="text/javascript">
+    $(document).on('ready',function(){
+        $('#changePasswordModal').modal({
+            dismissible: true, // Modal can be dismissed by clicking outside of the modal
+            opacity: .5, // Opacity of modal background
+            in_duration: 300, // Transition in duration
+            out_duration: 200, // Transition out duration
+            ready: function() {  }, // Callback for Modal open
+            complete: function() {  } // Callback for Modal close
+        });
+
+        $("#profile_form").validate({
+            submitHandler:function(form){
+                $.post("{{ path('my_profile_save') }}",$(form).serialize(),function(data){
+                    if(data.success == true){
+                        Materialize.toast('Información actualizada...', 5000)
+                    }
+                })
+            }
+        })
+
+        $("#password_update_button").on('click',function(){
+            $("#changePasswordForm").submit()
+        })
+
+        $('#changePasswordForm').validate({
+            rules:{
+                _password:{
+                    equalTo: "#_cpassword"
+                }
+            },
+            submitHandler:function(form){
+                    
+                toggleButton("#password_update_button")
+
+                $.post("{{ path('update_password') }}",$(form).serialize(),function(data){
+
+                    toggleButton("#password_update_button")
+
+                    $("#password_form_message").html('')
+
+                    if (data.success == true) {
+                        showMaterializeAlert("#password_form_message",'green lighten-3','done_all','Contraseña actualizada.')
+                    }else{
+                        showMaterializeAlert("#password_form_message",'orange lighten-3','error','Lo sentimos. A ocurrido un error.')
+                    }
+                })
+            }
+
+        })
+
+        {% if app.user.type == 2 %}
+            showMaterializeAlert("#interface_message","yellow accent-1","warning","Los usuarios del directorio activo no puden modificar sus datos por este medio. Por favor contacte al administrador.")
+        {% endif %}
+    })
+
+</script>
+{% endblock %}

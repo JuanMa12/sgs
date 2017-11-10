@@ -1,0 +1,123 @@
+{% extends 'base.html.twig' %}
+{% block title %}<i class="material-icons left hide-on-small-only">format_align_center</i>Log{% endblock %}
+
+{% block content %}
+	<div class="col l9 s12">
+		<div class="card-panel">
+			<div class="row">
+				<div class="col s12">					
+					<button class="btn orange" id="filter_toggle"><i class="right material-icons">toc</i>Opciones</button>
+					<div class="row blue-grey lighten-5" id="filters" style="display:none">
+						<form id='log_activity_form'>
+							<div class="col s12 m6">
+								<div class="input-field">
+									<input class="datepicker" name="date_ini" type="date" id="date1" placeholder="Fecha Inicial">
+								</div>
+							</div>
+							<div class="col s12 m6">
+								<div class="input-field">
+									<input class="datepicker" type="date" name="date_end" id="date2" placeholder="Fecha Final">
+								</div>
+							</div>
+							<div class="col s12">
+								<div class="row">
+									<div class="col s12 right-align">
+										<div  id="log_activity_message"></div>
+										<a id="delete_button" class="btn teal">Eliminar<i class="material-icons right">delete</i></a>
+									</div>
+								</div>
+							</div>
+						</form>
+					</div>
+
+					<table id="log_activity_table" class="striped ui table dataTable">
+						<thead>
+							<tr>
+								<th>Fecha</th>
+								<th>Usuario</th>
+								<th>Descripcion</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td></td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
+
+{% endblock %}
+
+{% block javascripts %}
+<script type="text/javascript">
+	$(document).on('ready',function(){
+
+		$('#log_activity_table').dataTable({
+			"sPaginationType": "full_numbers",
+			"bProcessing": true,
+			"bServerSide": true,
+			"bLengthChange": false,
+			"sAjaxSource": "{{ path('log_activity_grid') }}",
+			"aoColumns": [
+				{"mRender":filterCharacters},
+				{"mRender":filterCharacters},
+				{"mRender":filterCharacters}] ,
+			"fnServerData": function ( sSource, aoData, fnCallback ) {
+			  $.ajax( {
+			    "dataType": 'json',
+			    "type": "POST",
+			    "url": sSource,
+			    "data": aoData,
+			    "success": fnCallback
+			  } );
+			},
+		});
+
+		$('.datepicker').pickadate({
+			selectMonths: true, // Creates a dropdown to control month
+            selectYears: 15, // Creates a dropdown of 15 years to control year
+            format: 'mm/dd/yyyy'
+		});
+
+		$("#filter_toggle").on("click",function(){
+			$("#log_activity_message").html('')
+			$("#filters").toggle(400)
+		})
+
+		$("#delete_button").on('click',function(){
+			$("#log_activity_form").submit()
+		})
+
+		$("#log_activity_form").validate({
+			ignore:'.ignore',
+			submitHandler:function(form){
+
+				toggleButton("#delete_button")
+
+				$.post("{{path('delete_log_activity') }}", $(form).serialize(), function(data){
+
+					toggleButton("#delete_button")
+
+					$("#log_activity_message").html('')
+
+					if (data.success == true) {
+						showMaterializeAlert("#log_activity_message",'green lighten-3','done_all','registros eliminados.')
+
+						$("#log_activity_table").dataTable().fnDraw()
+						
+					}else{
+						showMaterializeAlert("#log_activity_message",'orange lighten-3','error',data.description)
+					}
+
+				})
+			}
+		})
+
+	})
+
+
+</script>
+{% endblock %}

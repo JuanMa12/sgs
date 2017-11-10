@@ -1,0 +1,20 @@
+CREATE TABLE `health_rt5` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `affiliation_id` int(11) DEFAULT NULL,
+  `diagnostic_main_code` varchar(45) DEFAULT NULL,
+  `diagnostic_second_code` varchar(45) DEFAULT NULL,
+  `nopos_provision_date` varchar(20) DEFAULT NULL,
+  `nopos_activity_code` varchar(45) DEFAULT NULL,
+  `nopos_provision_ambit` varchar(5) DEFAULT NULL,
+  `nopos_payment_type` varchar(5)  DEFAULT NULL,
+  `days` int(11) DEFAULT NULL,
+  `nopos_price` varchar(45) DEFAULT NULL,
+  `nopos_user_value` varchar(45) DEFAULT NULL,
+  `health_entity_code` varchar(20) DEFAULT NULL,
+  `pos_activity_code` varchar(45) DEFAULT NULL,
+  `pos_price` varchar(45) DEFAULT NULL,
+  `observations` varchar(10) DEFAULT NULL,
+  `process_id` varchar(20) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `afiliation_idx` (`affiliation_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;

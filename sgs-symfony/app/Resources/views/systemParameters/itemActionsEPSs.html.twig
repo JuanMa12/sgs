@@ -1,0 +1,12 @@
+<a class='dropdown-button btn-floating' href='#' data-activates='dropdown{{item.id}}'><i class="material-icons right">more_vert</i></a>
+
+<!-- Dropdown Structure -->
+<ul id='dropdown{{item.id}}' class='dropdown-content'>
+<li><a href="javascript:edit('{{ item.id }}')">Editar</a></li>
+	{% if item.status == 1 %}
+		<li><a href="javascript:changeStatus('{{ item.id }}',0)">Inactivar</a></li>
+	{% else %}
+		<li><a href="javascript:changeStatus('{{ item.id }}',1)">Activar</a></li>
+	{% endif %}
+
+</ul>

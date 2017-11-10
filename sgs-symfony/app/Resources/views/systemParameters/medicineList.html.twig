@@ -1,0 +1,245 @@
+{% extends 'base.html.twig' %}
+{% block title %}<i class="material-icons left hide-on-small-only">battery_std</i>Medicamentos{% endblock %}
+
+{% block content %}
+	
+	<div class="col l9 s12">
+		<div class="card-panel">
+			<div class="row">
+				<div class="col s12">
+
+					<a class="waves-effect waves-light btn orange" href="javascript:openMedicineModal()">Crear</a>
+
+					<table id="medicine_table" class="striped ui table dataTable">
+						<thead>
+							<tr>
+								<th>Id</th>
+								<th>Producto</th>
+								<th>Código CUM</th>
+								<th>Código ATC</th>
+								<th>Descrición comercial</th>					
+								<th>Acciones</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td></td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div id="medicine_form_modal" class="modal modal-fixed-footer">
+		<div class="modal-content">
+			<h4>Formulario de Medicamentos</h4>
+			<form id="medicine_form">
+				
+				<div class="input-field col s12 m6">
+					<input type="text" name="_product" id="_product" required>
+					<label for="_product">Producto</label>
+				</div>
+
+				<div class="input-field col s12 m6">
+					<input type="text" name="_cumCode" id="_cumCode" required>
+					<label for="_cumCode">Codigo CUM</label>
+				</div>
+
+				<div class="input-field col s12 ">
+					<input type="text" name="_commercialDescription" id="_commercialDescription" required>
+					<label for="_commercialDescription">Descripcion Comercial</label>
+				</div>
+
+				<div class="row">
+					<div class="input-field col s12 m6">
+						<input type="text" name="_atcCode" id="_atcCode" required>
+						<label for="_atcCode">Codigo ATC</label>
+					</div>
+					<div class="input-field col s12 m6">
+						<input type="text" name="_atcDescription" id="_atcDescription" required>
+						<label for="_atcDescription">Descripcion ATC</label>
+					</div>
+				</div>
+
+				<div class="input-field col s12 ">
+					<input type="text" name="_laboratory" id="_laboratory" required>
+					<label for="_laboratory">Laboratorio</label>
+				</div>
+				<div class="row">
+					<div class="col m6 s12">
+						<p>
+					      <input name="status_cum" type="radio" id="active" value="Activo"  checked/>
+					      <label for="active">Activo</label>
+					    </p>
+					</div>
+					<div class="col m6 s12">
+					    <p>
+					      <input name="status_cum" type="radio" id="inactive" value="Inactivo" />
+					      <label for="inactive">Inactivo</label>
+					    </p>
+					</div>
+				</div>
+
+				<div class="row">
+					<div class="input-field col s6 m4">
+						<input type="text" name="unity" id="_unity" required>
+						<label for="_unity">Unidad</label>
+					</div>		
+
+
+					<div class="input-field col s6 m4">
+						<input type="text" name="_concentration" id="_concentration" required>
+						<label for="_concentration">Concentración</label>
+					</div>
+
+					<div class="input-field col s6 m4">
+						<input type="text" name="_route_administration" id="_route_administration" required>
+						<label for="_route_administration">Vía de administración</label>
+					</div>
+				</div>
+				
+				<div class="input-field col s12 m6">
+					<input type="text" name="_activePrinciple" id="_activePrinciple" required>
+					<label for="_activePrinciple">Principio Activo</label>
+				</div>
+
+				<div class="input-field col s12 m6">
+					<input type="text" name="_unity_measure" id="_unity_measure" required>
+					<label for="_unity_measure">Unidad de Medida</label>
+				</div>
+
+				<div class="input-field col s12 m6">
+					<input type="text" name="_reference_unit" id="_reference_unit" required>
+					<label for="_reference_unit">Unidad de Referencia</label>
+				</div>
+
+				<div class="input-field col s12 m6">
+					<input type="text" name="_pharmaceutical_form" id="_pharmaceutical_form" required>
+					<label for="_pharmaceutical_form">Forma farmacéutica</label>
+				</div>
+				<div class=" input-field  col s12 m6">
+					<input type="hidden" name="_id" value="">
+				</div>
+			</form>
+		</div>
+		<div class="modal-footer">
+			<a id="medicine_form_button" href="javascript:void(0)" class="btn orange">Guardar</a>
+		</div>
+	</div>
+
+
+{% endblock %}
+
+{% block javascripts %}
+
+<script type="text/javascript">
+	$(document).on('ready',function(){
+
+		$('.datepicker').pickadate({
+		    selectMonths: true, // Creates a dropdown to control month
+		    selectYears: 15, // Creates a dropdown of 15 years to control year
+		    container: 'body'
+
+		});
+		
+
+		$('#medicine_table').dataTable({
+			"sPaginationType": "full_numbers",
+			"bProcessing": true,
+			"bServerSide": true,
+			"bLengthChange": false,
+			"sAjaxSource": "{{ path('medicine_grid') }}",
+			"aoColumns": [
+				{"mRender":filterCharacters},
+				{"mRender":filterCharacters},
+				{"mRender":filterCharacters},
+				{"mRender":filterCharacters},
+				{"mRender":filterCharacters},
+				{"mRender":filterCharacters, "bSearchable": false, "bSortable": false,"width":"50px" }] ,
+			"fnServerData": function ( sSource, aoData, fnCallback ) {
+			  $.ajax( {
+			    "dataType": 'json',
+			    "type": "POST",
+			    "url": sSource,
+			    "data": aoData,
+			    "success": fnCallback
+			  } );
+			},
+		})
+
+		$("#medicine_form_button").on('click',function(){
+			$("#medicine_form").submit()
+		})
+
+		$("#medicine_form").validate({
+			submitHandler:function(form){
+
+				toggleButton("#medicine_form_button")
+				$.post("{{path('medicine_save') }}", $(form).serialize(), function(data){
+
+					toggleButton("#medicine_form_button")
+					if (data.success == true) {
+						$('#medicine_form_modal').modal('close');
+						Materialize.toast('Se han guardado los cambios.',4000)
+						$("input[name='_id']").val(data.description)
+						
+					}else{
+						Materialize.toast(data.description,4000)
+					}
+
+				})
+			}
+		})
+
+		$("#medicine_form_modal").modal({
+			ready: clearInputs,
+			complete:function() {
+		        document.getElementById('medicine_form').reset()
+				$("#medicine_table").dataTable().fnDraw();
+				$("input[name='_id']").val('')
+		    }
+		});
+
+	})
+
+	function openMedicineModal(){
+		$("#medicine_form_modal").modal('open')
+	}
+
+	function edit(id){
+		$.post('{{path("medicine_get_info")}}',{_id:id},function(data){
+			if(data.success = true){
+				$("input[name='_id']").val(id)
+				$("input[name='_cumCode']").val(data.description.cumCode)
+				$("input[name='_product']").val(data.description.product)
+				$("input[name='_laboratory']").val(data.description.laboratory)
+				$("input[name='_route_administration']").val(data.description.routeAdministration)
+				$("input[name='_commercialDescription']" ).val(data.description.commercialDescription)
+				$("input[name='_atcCode']").val(data.description.atcCode)
+				$("input[name='_atcDescription']").val(data.description.atcDescription)
+				$("input[name='_concentration']" ).val(data.description.concentration)
+				$("input[name='_activePrinciple']").val(data.description.activePrinciple)
+				$("input[name='_unity_measure']").val(data.description.unityMeasure)
+				$("input[name='unity']").val(data.description.unity)
+				$("input[name='_pharmaceutical_form']").val(data.description.pharmaceuticalForm)
+				$("input[name='_reference_unit']" ).val(data.description.referenceUnit)
+
+				if ('Activo' == data.description.statusCum) {
+					$("#active").prop( "checked","checked" )
+					$("#inactive").prop( "checked",false)						
+				}else{
+					$("#inactive").prop( "checked","checked" )
+					$("#active").prop( "checked",false)						
+				}
+
+				openMedicineModal()
+			}
+		})
+	}
+
+	
+
+
+</script>
+{% endblock %}

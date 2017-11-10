@@ -1,0 +1,414 @@
+{% extends 'base.html.twig' %}
+{% block title %}<i class="material-icons left">trending_up</i>Salud{% endblock %}
+{% set section = 'process' %}
+
+{% block content %}
+    <div class="row">
+        <div id="process_content" class="col s12 l9">            
+        </div>  
+        <div class="col m12 l3 hide-on-med-and-down">
+            <div class="input-field">
+                <input type="text" name="search" placeholder="Nombre" value="{{defaultSearch}}">
+            </div>
+            <a id="search-btn" class="btn"><i class="material-icons left">search</i>Buscar</a>
+            <p>Para un nuevo proceso, por favor haga clic en el botón "+"</p>
+            <div id="process_filter">  
+                {% for processOrderType in processOrderTypes %}
+                    <p>
+                        <input 
+                            type="checkbox" 
+                            class="filter_type" 
+                            name="filter_type[]" 
+                            id="f_{{processOrderType.getId()}}" 
+                            value="{{processOrderType.getId()}}" 
+                            checked="checked" />
+                        <label for="f_{{processOrderType.getId()}}">{{processOrderType.getName()}}</label>     
+                     </p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col m12 l9">
+            <a class="waves-effect waves-orange btn-flat right" id="btn_nextpage">Ver más</a>
+        </div>
+    </div>
+
+    <div id="health_process_modal" class="modal modal-fixed-footer">
+        <div class="modal-content">        
+            <div class="steep_body" steep="1" style="diplay:none">
+                <form id="upload_file_form_process" action="{{ path('health_order_save') }}" enctype="multipart/form-data" class="form-horizontal" method="POST">
+                    <h4 class="teal-text">Formulario de proceso</h4>
+                    <div class="row">
+                        <p class="col m6">
+                          <input name="processType" type="radio" id="infoLoad" value="1" checked />
+                          <label for="infoLoad">Cargar Información</label>
+                        </p>
+                        <p class="col m6">
+                          <input name="processType" type="radio" id="qualityProcess" value="2" />
+                          <label for="qualityProcess">Nuevo proceso de calidad</label>
+                        </p>
+                    </div>
+                    <div class="row" id="fileSection">
+                        <div class="file-field input-field">
+                            <div class="btn">
+                                <span>archivo</span>
+                                <input name="_fileProcessOrder" id="_fileProcessOrder" type="file">
+                            </div>
+                            <div class="file-path-wrapper">
+                                <input class="file-path" type="text" required>
+                            </div>
+                        </div>
+                    </div>       
+                    <div id="qualitySection">
+
+                        <div class="row">
+                            <div class="input-field col m6">
+                                <select name="_eps" id="_eps" required>
+                                    {% for key,value in epss %}
+                                        <option value="{{key}}">{{key}}</option>
+                                    {% endfor %}
+                                </select>
+                                <label for="_eps">EPS</label>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="input-field col m6">
+                                <select name="_qsource" id="_qsource" required>
+                                    <option value="suf">Suficiencia</option>
+                                    <option value="pip">Pilotos</option>
+                                </select>
+                                <label for="_qsource">Fuente</label>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="input-field col m12">
+                                <p>Años</p>
+                                {% for key,value in epss %}
+                                    <div eps="{{key}}" class="yearSection" style="display:none">
+                                        {% for year in value %}
+                                            <p class="col m4"> 
+                                              <input name="year" type="radio" value="{{year}}" id="{{key}}{{year}}" />
+                                              <label for="{{key}}{{year}}">{{year}}</label>
+                                            </p>                                
+                                        {% endfor %}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div> 
+                    <input type="hidden" name="_type" id="_type" value=""> 
+                    <input type="hidden" name="_name" id="_name_process" value=""> 
+                    <input type="hidden" name="_year" id="_year" value=""> 
+                    <div id="error_upload_file">
+                    </div>              
+                </form>
+            </div>
+            <div class="steep_body" steep="2" style="diplay:none">          
+                <form id='process_data'>
+                    <h5 class="teal-text">Datos del proceso</h5>
+                    <table class="table" id="process_order_params_table">
+                        <thead>
+                            <tr>
+                                <td>Parametro</td>
+                                <td>Valor</td>
+                            </tr>       
+                        </thead>
+                        <tbody>
+                   
+                        
+                        </tbody>
+                    </table>
+                </form>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <div id="upload_file_process_form_message"></div>
+            <a id="upload_file_process_button" href="javascript:void(0)" class="btn orange">Continuar</a>
+            <a class="btn" id="btn_next" href="javascript:getInfoFile()" >Siguiente</a>
+            <a href="#!" class="modal-action modal-close waves-effect waves-green btn-flat">Cerrar</a>
+            <a class="btn" id="btn_after" href="javascript:changeSteep(1)" >Atras</a>
+        </div>
+    </div>       
+    
+    <div class="fixed-action-btn click-to-toggle" style="bottom: 45px; right: 24px;">
+        <a class="btn-floating btn-large red"  href="javascript:openUploadFileModal()">
+            <i class="large material-icons">add</i>
+        </a>
+    </div>
+
+{% endblock %}
+
+{% block javascripts %}
+
+<script src="{{asset('js/process_order.js')}}"></script>
+<script src="{{asset('js/socket.io-1.4.5.js')}}"></script>
+
+<script type="text/javascript">
+    $(function(){
+        var socket = io.connect('{{public_socket_io}}/health/process')
+        
+        $(".filter_type").on('change', function(event) {
+            currentPage = 0
+            $("#process_content").html("")
+            valueProcessHealth()
+        }) 
+
+        $("input[name='processType']").on('change', function(event) {
+            $("#error_upload_file").html('') 
+            if($("input[name='processType']:checked").val() == '1'){
+                $("#qualitySection").hide()
+                $("#fileSection").show()
+            }else{
+                $("#qualitySection").show()
+                $("#fileSection").hide()
+            }    
+        })
+
+        $("#_eps").on('change', updatePeriods)
+
+        updatePeriods()
+
+        $("#search-btn").on('click',function(){
+            currentPage = 0
+            $("#process_content").html('')
+            valueProcessHealth()
+        })
+
+        socket.on('update',function(obj){
+            var element = $('div[process-order-id="'+obj.id+'"]')
+            if(element){
+                element.data('processOrder').refreshData(obj)
+            }
+        })
+
+        $('#btn_nextpage').on('click',valueProcessHealth)
+
+        valueProcessHealth()
+
+        $("#upload_file_process_button").on('click',function(){
+            $("#upload_file_form_process").submit()
+        })  
+
+        $('select').material_select();
+
+        $("#upload_file_form_process").validate({
+            submitHandler:function(form){
+                var dpbar = toggleButton("#upload_file_process_button",'Por favor espere mientras se sube el archivo')
+                var pbar = dpbar.children().first()
+                pbar.addClass('col s6')
+
+                $('#upload_file_form_process').ajaxSubmit({
+                    beforeSend:function(){
+                        pbar.removeClass('indeterminate')
+                        pbar.addClass('determinate')
+                        pbar.css('width','0%')
+                    },
+
+                    uploadProgress:function(event,position,total,percentComplete){
+                        pbar.css('width',`${percentComplete}%`)
+                    },
+
+                    success:function(data){
+                        toggleButton("#upload_file_process_button")
+
+                        $("#upload_file_process_form_message").html('')
+
+                        if (data.success == true) {
+
+                            element = $("<div>")
+                            element.processOrder(data.description)
+                            $("#process_content").prepend(element)
+
+                            $('#health_process_modal').modal('close')
+
+                        }else{
+                            showMaterializeAlert("#upload_file_process_form_message",'orange lighten-3','error',data.description)
+                        }
+
+                    }           
+                    
+                })
+
+            }
+        })
+
+        $('#health_process_modal').modal({
+            ready: clearInputs,
+            complete: function() {
+                document.getElementById('upload_file_form_process').reset();
+                $("#error_upload_file").html('') 
+                $("#upload_file_process_form_message").html('')       
+            }
+        });        
+    })
+
+    var currentPage = 0
+    function valueProcessHealth(){
+
+        var pendingIcn = $(`<div class='col s12'>&nbsp;</div>
+                            <div class='col s12 center'>
+                                <div class="preloader-wrapper small active">
+                                  <div class="spinner-layer spinner-green-only">
+                                    <div class="circle-clipper left">
+                                      <div class="circle"></div>
+                                    </div><div class="gap-patch">
+                                      <div class="circle"></div>
+                                    </div><div class="circle-clipper right">
+                                      <div class="circle"></div>
+                                    </div>
+                                  </div>
+                                </div>
+                            </div>`)
+
+        $("#process_content").append(pendingIcn)
+
+        var arrFilters = $.map($(".filter_type:checked"),function(element,index){
+            return element.value
+        }) 
+
+        var data2send = {
+            "filters": arrFilters,
+            "page":currentPage + 1,
+            "word": $("input[name='search']").val()
+        }
+
+
+        $.post("{{path('process_order_info',{module:'health'})}}",data2send,function(data){
+            pendingIcn.remove()
+            
+            if(data.success == true && Object.keys(data.description).length > 0){
+
+                $.each(data.description,function(index,obj){
+
+                    var element = $('div[process-order-id="'+obj.id+'"]')
+                    
+                    if (element.length == 0) {
+                        element = $("<div>")
+                        element.processOrder(obj)
+                        $("#process_content").append(element)
+                    }else{
+                        element.data('processOrder').refreshData(obj)
+                    }
+
+                    
+                })
+
+                if(Object.keys(data.description).length < 10){
+                    $("#btn_nextpage").hide()
+                }
+
+                currentPage ++
+            }else{
+                $("#process_content").html(`<b>Lo sentimos.</b> 
+                  <p>No se encontraron datos relacionados.</p>`)
+            }
+        })
+    }
+    
+    function openUploadFileModal(){
+        $("#qualitySection").hide()
+        $("#fileSection").show()
+        changeSteep(1)
+        $('#health_process_modal').modal('open');
+
+    }
+
+    function changeSteep(number){
+        $("#error_upload_file").html('')
+        $("#upload_file_process_button").hide()
+        $("#btn_next").show()
+        $("#btn_after").hide()
+        $(".steep_body").hide()
+        if (number == 2) {
+            $("#btn_next").hide()
+            $("#upload_file_process_button").show()
+            $("#btn_after").show()
+        }
+        $(".steep_body[steep='"+number+"']").show()
+    }
+
+    function getInfoFile(){    
+
+        var fileName= $("#_fileProcessOrder").val()
+        var typeProcess= $("input[name='processType']:checked").val()
+        
+        if (typeProcess == '1') {
+
+            if (fileName == '') {
+
+                showMaterializeAlert("#error_upload_file",'orange lighten-3','error','Archivo no seleccionado.')
+            }else{
+
+                $.post("{{ path('health_validate_file_name')}}",{fileName:fileName},function(data){
+
+                    if(data.success == true){
+
+                        var tbody = $("#process_order_params_table").find("tbody")
+                        tbody.html("")
+
+                        $.each(data.description, function( index, value ) {
+                            if (index != 'type' && index != 'year') {
+                                tbody.append(`<tr><td>${index}</td><td>${value}</td></tr>`)
+                            } 
+                        });
+                        $("#_type").val(data.description.type)
+                        $("#_name_process").val(data.description.Nombre)
+                        $("#_year").val(data.description.year)
+                        
+                        var number = $(".stepper.orange").attr('steep')
+                        changeSteep(2)
+                    }else{
+                        showMaterializeAlert("#error_upload_file",'orange lighten-3','error',data.description) 
+                    }
+                })
+            }
+        }else{
+            var eps = $("#_eps").val()
+            var year = $("input[name='year']:checked").val()
+            var source = $("select[name='_qsource']").val()
+            
+            if (year) {
+                console.log(source)
+                $.post("{{ path('health_validate_quality_process')}}",{eps:eps,year:year,source:source},function(data){
+                    if(data.success == true){
+                        var tbody = $("#process_order_params_table").find("tbody")
+                        tbody.html("")
+
+                        $.each(data.description, function( index, value ) {
+                            if (index != 'type' && index != 'year') {
+                                tbody.append(`<tr><td>${index}</td><td>${value}</td></tr>`)
+                            } 
+                        });
+                        $("#_type").val(data.description.type)
+                        $("#_name_process").val(data.description.Nombre)
+                        $("#_year").val(data.description.year)
+                        
+                        var number = $(".stepper.orange").attr('steep')
+                        changeSteep(2)
+                    }else{
+                        showMaterializeAlert("#error_upload_file",'orange lighten-3','error',data.description) 
+                    }
+                })
+            }else{
+                showMaterializeAlert("#error_upload_file",'orange lighten-3','error','Por favor escoja un año valido.') 
+            }            
+
+        }
+    }
+
+    function updatePeriods() {
+        $("input[name='year']").each(function() { 
+            $(this).prop('checked', false);              
+        })                
+
+        $('.yearSection').each(function(index,element) {             
+            if ($(element).attr('eps') == $("#_eps").val()) {
+                $(element).show()
+            }else{
+                $(element).hide()
+            }
+        })                
+    }
+</script>
+{% endblock %}

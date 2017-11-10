@@ -1,0 +1,230 @@
+{% extends 'base.html.twig' %}
+{% block title %}<i class="material-icons left">insert_chart</i>Financiero{% endblock %}
+{% set section = 'finantial' %}
+{% set color = 'green' %}
+
+{% block content %}
+    <style type="text/css">
+    .ui-autocomplete { position: absolute; cursor: default;z-index:3000 !important;}
+    </style>
+
+    {% set accessCreateReport = false %}
+    {% if (app.user.role == 2 and app.user.getProfile() is not null and app.user.getProfile().getCreateReport() == 1) or (app.user.role == 1) %}
+        {% set accessCreateReport = true %}
+    {% endif %}
+   
+    <div class="row">
+        <div class="col m12 l9 center">
+            <a class="waves-effect waves-orange btn-flat" id="btn_nextpage" style="display:none">Ver más</a>
+        </div>
+    </div>
+    <div class="col m12 l3 hide-on-med-and-down">
+        <div style="position:fixed">
+            <div class="input-field">
+                <input type="text" name="search" placeholder="Nombre">
+            </div>
+
+            <a id="search-btn" class="btn-flat"><i class="material-icons left">search</i>Buscar</a>
+
+             <p class="valign-wrapper">
+                <a id="filter_modal_btn" class="valign btn-flat"><i class="material-icons left">playlist_add</i>Filtrar</a>
+            </p>
+            <p>{% if accessCreateReport %}Para crear su reporte, por favor haga clic en el botón "+"{% endif %}</p>
+            <div id="report_filter">
+            </div>
+        </div>
+    </div>
+    <!-- Modal de filtros-->
+    <div id="filter_modal" class="modal bottom-sheet">
+        <div class="modal-content">
+            <div class="row">
+            {% for processOrderType in processOrderTypes %}
+                <div class="col s4 center">
+                    <button typeId="{{processOrderType.id}}" class="btn {{color}}" onclick="addFilter({{processOrderType.id}},'{{processOrderType.name}}');goSearch()" style="margin-bottom:10px">{{processOrderType.name}}</button>
+                </div>
+            {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div id="finantial_report_modal"></div>
+
+    {% if accessCreateReport %}    
+        <div class="fixed-action-btn click-to-toggle" style="bottom: 45px; right: 24px;">
+            <a id="openModalFinantial" class="btn-floating btn-large red tooltipped"  href="javascript:void(0)" data-tooltip="Crear Reporte" data-position="left"> 
+               <i class="large material-icons">add</i>
+            </a>
+        </div>
+    {% endif %}
+{% endblock %}
+
+{% block javascripts %}
+
+    <script src="{{asset('js/wizard.js')}}"></script>
+    <script src="{{asset('js/report_order.js')}}"></script>
+    <script src="{{asset('js/socket.io-1.4.5.js')}}"></script>
+
+    <script type="text/javascript" src="{{asset('js/jquery-ui.min.js')}}"></script>
+
+    <script type="text/javascript">
+        $(document).on('ready',function(){
+            $('.collapsible').collapsible();
+            updateReportList()
+
+            $("#view_explorer").hide()
+            //inicializacion de la modal
+            $("#filter_modal").modal()
+
+            $("#filter_modal_btn").on('click',function(){
+                var arrFilters = $.map($("#report_filter").find('.filter'),function(element,index){
+                    return $(element).attr('value')
+                }) 
+
+                $("#filter_modal").find('button').each(function(element,index){
+                    if(arrFilters.indexOf($(this).attr('typeId')) > -1 ){
+                        $(this).prop('disabled',true)
+                    }else{
+                        $(this).prop('disabled',false)
+                    }
+                }) 
+
+                $("#filter_modal").modal('open')
+            })
+
+
+            /**
+             * WIZARD MODULO FINANCIERO
+             */
+
+            $("#finantial_report_modal").wizard([
+                {
+                    name:"Reporte de Ingresos vs costos",
+                    description:"Esta grafica representa los costos de las actividades versus los ingresos de la liquidación mensual de afiliados(LMA).",
+                    params:[
+                        {name:'periods',icon:'date_range'},
+                        {name:'source',icon:'data_usage'},
+                        {name:'eps',icon:'business'},                        
+                    ],
+                    savePath:"{{ path('finantial_report_save') }}",
+                    htmlParams:"{{ path('report_order_params_html')}}",
+                    typeOrder:18
+                },            
+            
+                {
+                    name:"Reporte ingresos LMA",
+                    description:"Ingresos LMA de hombres y mujeres.",
+                    params:[
+                        {name:'periods',icon:'date_range'},
+                        {name:'source',icon:'data_usage'},
+                        {name:'eps',icon:'business'},
+                        {name:'georeferencing',icon:'location_on'},
+                    ],
+                    htmlParams:"{{ path('report_order_params_html')}}",
+                    savePath:"{{ path('finantial_report_save') }}",
+                    typeOrder:20
+                },
+               
+            ])
+
+            $("#openModalFinantial").on('click',function(){
+                $("#finantial_report_modal").data('wizard').openModal()
+            })
+
+            $("#search-btn").on('click',goSearch)
+
+            $('#btn_nextpage').on('click',updateReportList)
+
+            var socket = io.connect('{{public_socket_io}}/finantial/reports')
+
+            socket.on('update',function(obj){
+                var element = $('div[process-order-id="'+obj.id+'"]')
+                if(element){
+                    element.data('reportOrder').refreshData(obj)
+                }
+            })
+
+        })
+
+        var currentPage = 0
+        
+        /**
+         * Funcion que añade registros al listado de reportes
+         */
+        function updateReportList(){
+
+            var pendingIcn = $(`<div class='col s12'>&nbsp;</div>
+                            <div class='col s12 center'>
+                                <div class="preloader-wrapper small active">
+                                  <div class="spinner-layer spinner-green-only">
+                                    <div class="circle-clipper left">
+                                      <div class="circle"></div>
+                                    </div><div class="gap-patch">
+                                      <div class="circle"></div>
+                                    </div><div class="circle-clipper right">
+                                      <div class="circle"></div>
+                                    </div>
+                                  </div>
+                                </div>
+                            </div>`)
+            
+            $("#report_content").append(pendingIcn)
+            
+           // Se sacan los id de los filtros añadidos
+            var arrFilters = $.map($("#report_filter").find('.filter'),function(element,index){
+                return $(element).attr('value')
+            }) 
+
+            if(arrFilters.length == 0){// si no hay ninguno se veran todos
+                arrFilters = $.map($("#filter_modal").find('button'),function(element,index){
+                    return $(element).attr('typeId')
+                }) 
+            }
+
+            var data2send = {
+                "filters": arrFilters,
+                "page": currentPage + 1,
+                "word": $("input[name='search']").val()
+            }
+
+            $.post("{{path('report_order_info',{module:'finantial'})}}",data2send,function(data){
+                pendingIcn.remove()
+                if(data.success == true && data.description.length > 0){
+
+                    $.each(data.description,function(index,obj){
+                        var element = $('div[process-order-id="'+obj.id+'"]')
+                        if (element.length == 0) {
+                            element = $("<div>")
+                            element.reportOrder(obj)
+                            $("#report_content").append(element)
+                        }else{
+                            element.data('reportOrder').refreshData(obj)
+                        }   
+                    })
+                
+                    currentPage++
+
+                    $("#btn_nextpage").show()
+                    if(data.description.length < 10){
+                        $("#btn_nextpage").hide()
+                    }
+
+                }else{
+                    $("#report_content").html(`<b>Lo sentimos.</b> 
+                      <p>No se encontraron datos relacionados.</p>`)
+                }
+            })
+        }   
+
+        /**
+         * Funcion que empieza una nueva busqueda
+         */
+        function goSearch(){
+            $("#view_explorer").show()
+            $("#report_content").html("")
+            currentPage = 0
+            updateReportList()
+        }
+
+    </script>
+    
+{% endblock %}

@@ -1,0 +1,188 @@
+{% extends 'base.html.twig' %}
+{% block title %}<i class="material-icons left hide-on-small-only">people</i>Usuarios{% endblock %}
+
+{% block content %}
+<div class="col s12">
+	<div class="card-panel">
+		<div class="row">
+			<div class="col s12">
+				<button class="btn" id="creationButton">Crear</button>
+
+				<table id="user_table" class="striped ui table dataTable">
+					<thead>
+						<tr>
+							<th>Nombre</th>
+							<th>Role</th>
+							<th>Fuente</th>
+							<th>Estado</th>
+							<th>Acciones</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td></td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div id="modal1" class="modal modal-fixed-footer">
+	<div class="modal-content">
+		<h4>Formulario de usuario</h4>
+		<form id="form">
+
+			<div class="input-field">
+				<input type="text" 
+					id="_name"
+					name="_name"
+					required>
+				<label for="_name">Nombre</label>
+			</div>
+
+			<div class="input-field">
+				<input type="text" 
+					id="_username"
+					name="_username"
+					required>
+				<label for="_username">Nombre de usuario</label>
+			</div>
+
+			<div class="input-field">
+				<input type="email" 
+					id="_email"
+					name="_email"
+					required>
+				<label for="_email">Correo electronico</label>
+			</div>
+			
+			<div class="input-field">
+				<select name="_role" id="_role">
+					<option value="1">Administrador</option>
+					<option value="2">Usuario</option>
+				</select>
+				<label for="_role">Roll</label>
+			</div>
+
+			<div class="input-field">
+				<select name="_profile" id="_profile">
+					<option value="">Seleccione uno</option>
+					{% for profile in profiles %}
+						<option value="{{profile.id}}">{{profile.name}}</option>
+					{% endfor %}
+				</select>
+				<label for="_profile">Perfil</label>
+			</div>
+			<input type="hidden" name="_id" value="">
+		</form>
+	</div>
+	<div class="modal-footer">
+		<a id="form_button" href="javascript:void(0)" class="btn orange">Guardar</a>
+	</div>
+</div>
+
+{% endblock %}
+
+{% block javascripts %}
+<script type="text/javascript">
+	$(document).on('ready',function(){
+
+		$('#user_table').dataTable({
+			"sPaginationType": "full_numbers",
+			"bProcessing": true,
+			"bServerSide": true,
+			"bLengthChange": false,
+			"sAjaxSource": "{{ path('user_grid') }}",
+			"aoColumns": [
+				{"mRender":filterCharacters},
+				{"mRender":filterCharacters},
+				{"mRender":filterCharacters},
+				{"mRender":filterCharacters},
+				{"mRender":filterCharacters, "bSearchable": false, "bSortable": false,"width":"20%" }] ,
+			"fnServerData": function ( sSource, aoData, fnCallback ) {
+			  $.ajax( {
+			    "dataType": 'json',
+			    "type": "POST",
+			    "url": sSource,
+			    "data": aoData,
+			    "success": fnCallback
+			  } );
+			},
+		});
+
+		$("#form_button").on('click',function(){
+			$("#form").submit()
+		})
+
+		$("#form").validate({
+			ignore:'.ignore',
+			submitHandler:function(form){
+
+				toggleButton("#form_button")
+
+				$.post("{{path('user_save') }}", $(form).serialize(), function(data){
+
+					toggleButton("#form_button")
+					if (data.success == true) {
+						$("#modal1").modal('close')
+						Materialize.toast('Se han guardado los cambios.',4000)
+						$("input[name='_id']").val(data.description)
+						
+					}else{
+						Materialize.toast(data.description,4000)
+					}
+
+				})
+			}
+		})
+
+		$('select').material_select();
+
+		$('#creationButton').on('click',openEditModal)
+
+		$("#modal1").modal({
+			ready: clearInputs,
+			complete:function() {
+		        document.getElementById('form').reset()
+				$("#user_table").dataTable().fnDraw();
+				$("input[name='_id']").val('')
+		    }
+		});
+		
+	})
+
+	function openEditModal(){
+		$("#modal1").modal('open')
+	}
+
+	function edit(id){
+		$.post("{{path('user_get_info')}}",{id:id},function(data){
+			if(data.success == true){
+				$("#_name").val(data.description.name)
+				$("#_username").val(data.description.username)
+				$("#_email").val(data.description.email)
+				$("#_role").val(data.description.role)
+				$("#_profile").val(data.description.profile)
+				$("input[name='_id']").val(id)
+
+				openEditModal()
+
+				$('select').material_select()
+				clearInputs()
+			}
+		})
+	}
+	
+	function changeStatus(id,status){
+
+		$.post("{{ path('user_changeStatus')}}",{id:id,status:status},function(data){
+
+			$("#user_table").dataTable().fnDraw();
+
+		})
+	}
+
+</script>
+{% endblock %}

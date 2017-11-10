@@ -1,0 +1,139 @@
+body {
+	background-color: #eeeeee;
+}
+
+.input-field label.invalid{
+	color: #F44336 !important;
+  	top: -15px;
+  	position: relative;
+  	font-size: 12px;
+}
+
+.ui-autocomplete-category {
+	padding: 10px 5px 10px;
+	background-color: #E0E6F8;
+	color: #31A6A4;
+	font-weight: 700;
+}
+
+.ui-autocomplete-item {
+	background-color: white;
+	padding:10px 15px 10px; 
+	padding-bottom:10px;
+	color:#31A6A4;
+}
+
+
+.process-order-div{
+	padding: 20px !important;
+}
+
+.ui-autocomplete-item:hover {
+	background-color: #DDDDDD;
+}
+
+.ui-autocomplete { position: absolute; cursor: default;z-index:30 !important;}
+
+tfoot{
+	background-color: #F9F8D7;
+}
+
+.ui-helper-hidden-accessible{
+	display: none;
+}
+
+.alert-item{
+    cursor: pointer;	
+}
+
+.side-nav li i{
+	color: black;
+}
+
+@media only screen and (min-width: 993px) {
+    nav a.button-collapse {
+        display: block !important;
+    }
+}
+
+.side-space {
+    padding-left: 240px;
+}
+
+@media only screen and (max-width : 992px) {
+	.side-space {
+		padding-left: 0;
+	}
+}
+
+.custom-snav{
+	top:72px;
+	box-shadow: 0px 0px 0px;
+}
+
+@media only screen and (max-width : 992px) {
+	.custom-snav{
+		top:0px;
+		background-color: white !important;
+	}
+}
+
+@media only screen and (max-width : 601px) {
+    nav, nav .nav-wrapper i, nav a.button-collapse, nav a.button-collapse i {
+        height: 64px;
+        line-height: 64px;
+    }
+
+    .modal {
+        width: 100%;
+        height: 90% !important;
+        max-height: 100% !important;
+        /*top: 0% !important;*/
+    }
+
+    .login-background{
+    	background-size: 185% !important;	
+    }
+}
+
+.footer-line{
+	border-left:1px solid white;
+}
+.login-background{
+	background-image: url('../img/fondo_login.jpg');
+	background-repeat: no-repeat;
+	background-size: 100%;
+	margin: 0px -11px;
+	padding: 30px 0px;
+}
+
+.steps{
+	padding: 10px;
+}
+
+.container{
+	width: 100% !important;
+	padding: 0 0.75rem;
+	max-width: 100%;
+}
+
+/*AJUSTES ACTUALIZACION MATERIALIZE*/
+.fixed-action-btn{
+	z-index: 990;
+}
+
+.collapsible-body{
+	padding:0px;
+}
+
+.side-nav a{
+	font-weight: 400;
+}
+
+.collapsible-header{
+	padding: 0px 32px !important; 
+}
+.scroll-items{
+	overflow-y: auto;
+	height: 150px;
+}

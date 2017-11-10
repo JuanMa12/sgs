@@ -1,0 +1,47 @@
+# To get started with security, check out the documentation:
+# http://symfony.com/doc/current/book/security.html
+security:
+
+    # http://symfony.com/doc/current/book/security.html#where-do-users-come-from-user-providers
+    providers:
+        custom_provider:
+            id: ldap_user_provider
+
+    encoders:
+        # Symfony\Component\Security\Core\User\User: plaintext
+        AppBundle\Entity\User: 
+            algorithm: bcrypt
+
+    firewalls:
+        # disables authentication for assets and the profiler, adapt it according to your needs
+        dev:
+            pattern: ^/(_(profiler|wdt)|css|images|js)/
+            security: false
+
+        default:
+            ldap: true
+            anonymous: ~
+            http_basic: ~
+            form_login:
+                provider: custom_provider
+                csrf_token_generator: security.csrf.token_manager
+                login_path: /login
+                check_path: /login_check
+                # success_handler: authentication_handler
+                # failure_handler: authentication_handler
+            logout:
+                path:   /logout
+                target: /
+
+    encoders:
+        AppBundle\Security\User\LdapUser: plaintext
+
+    role_hierarchy:
+        ROLE_ADMIN:       ROLE_USER
+
+    access_control:
+        - { path: ^/login, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: ^/auth, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: ^/admin, roles: ROLE_ADMIN }
+        - { path: ^/, roles: IS_AUTHENTICATED_FULLY }
+

@@ -1,0 +1,83 @@
+<form id="eps" class="info_params">
+    <h5 class="teal-text">EPSs</h5>
+    <p>Escoja la EPS o EPSs que desea incluir en el reporte.</p>
+    {% if app.user.role == 1 %}
+        <p>
+          <input name="type_select" type="radio" id="test3_eps" value="all" checked="checked" />
+          <label for="test3_eps">Todas</label>
+        </p>
+        
+        <p>
+          <input name="type_select" type="radio" id="test1_eps" value="guild"/>
+          <label for="test1_eps">Por gremio</label>
+        </p>
+        
+        <p>
+          <input name="type_select" type="radio" id="test2_eps" value="epss"/>
+          <label for="test2_eps">Especificas</label>
+        </p>    
+        
+        <div class="row" id="guild_select" style="display:none">
+            <p class="teal-text">Gremios</p>
+            <div class="col s12">
+                {% for guild in guilds %}
+                    <p class="col s6">
+                      <input type="checkbox" name="guildIds[]" id="guild_{{guild.id}}" value="{{guild.id}}" />
+                      <label for="guild_{{guild.id}}">{{ guild.name }}</label>
+                    </p> 
+                {% endfor %}
+            </div>
+        </div>     
+        <div id="eps_table" style="display:none"></div>
+    {% else %}
+        <input type="hidden" name="type_select" value="epss">
+        {% if app.user.getProfile() is not null %}
+            {% for profile in app.user.getProfile().getProfilesHealthPromotion() %}    
+                    <p class="col s6">
+                      <input type="checkbox" name="_in[]" id="guild_{{profile.getHealthPromotionEntity().id}}" value="{{profile.getHealthPromotionEntity().id}}" />
+                      <label for="guild_{{profile.getHealthPromotionEntity().id}}">{{ profile.getHealthPromotionEntity().alias }}</label>
+                    </p> 
+            {% endfor %}        
+        {% else %}
+            <p>Lo sentimos no tiene un perfil asignado por favor comuniquese con el administrador.</p>   
+        {% endif %}
+    {% endif %}
+</form>
+
+{% block javascripts %}
+
+<script src="{{asset('js/autocomplete_list.js')}}"></script>
+<script type="text/javascript" src="{{asset('js/jquery-ui.min.js')}}"></script>
+<script type="text/javascript" src="{{asset('js/custom_autocomplete.js')}}"></script>
+
+<script type="text/javascript">
+    $(function(){        
+
+        $("#eps_table").autocompleteList({
+            path:"{{ path('autocomplete_eps') }}",
+            form_name:'_in'
+        });
+
+        $("input[name='type_select']").on('change',function(){
+            $("#guild_select").hide()
+            $("#eps_table").hide()
+            switch($(this).val()){
+                case "guild":
+                    $("#guild_select").show()
+                    break
+                case "epss":
+                    $("#eps_table").show()
+                    break
+            }
+        })
+
+        $("#eps").on("reset",function(){
+            $("#eps_table").hide()
+            $("#guild_select").hide()
+            $("#eps_table table tbody").html('')            
+        })
+ 
+    })
+
+</script>
+{% endblock %}

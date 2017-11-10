@@ -1,0 +1,135 @@
+<div class="row">
+	<div class="col s12">
+		<h4 class="orange-text"> {% if processOrder.getName() is defined %}{{ processOrder.getName() }}{% endif %}</h4>  
+        <p><strong>Creado por: </strong>{{processOrder.getUser().getName()}}</p>   
+        <h5 class="teal-text">Tipo de Reporte: {{processOrder.getProcessOrderType().getName()}}</h5>   
+        <p>{{processOrder.getProcessOrderType().getDescription()}}</p>
+	</div>
+</div>
+{% if params is defined and params == true %}
+	<div class="row hide-on-med-and-down">
+		{% include '/general/params.html.twig' with {processOrder:processOrder} %}
+	</div>
+{% endif %}
+{% for year,yearData in data %}
+<div class="row">
+	<div class="col s12">
+		<div class="card-panel">
+			<div id="container_frec{{processOrder.getId()}}{{year}}"></div>
+		</div>
+	</div>
+	{% set total1 = 0 %}
+	{% set total2 = 0 %}
+	{% set total3 = 0 %}
+	{% for key,value in yearData %}
+		{% set total1 = total1 + value.cost1 %}
+		{% set total2 = total2 + value.cost2 %}
+		{% set total3 = total3 + value.cost3 %}
+	{% endfor %}
+	{% if resume is defined and resume == true %}
+		<div class="col s12">
+			<div class="card-panel">
+				<h5 class="teal-text">Resumen de datos {{year}}</h5>
+				{% for key,value in yearData %}	
+					{% set cost = value.cost1 + value.cost2 + value.cost3 %}
+					<p>Porcentaje {{key}}: {{((cost/(total1+total2+total3))*100)|number_format(2,'.',',')}}%</p>
+				{% endfor %}
+			</div>
+		</div>
+	{% endif %}
+</div>
+<script type="text/javascript">
+
+	$(function () {
+	    $('#container_frec{{processOrder.getId()}}{{year}}').highcharts({
+	        chart: {
+	            type: 'column'
+	        },
+	        colors: ['#0070B3','#FFA124','#212121'],
+	        title: {
+	            text: 'Costos por Ámbito de Átención {{year}}'
+	        }, 
+	        subtitle: {
+		        text: 'Fuente: {{processOrder.getParams().Fuente}} {{year}}',
+		        floating: true,
+		        align: 'right',
+		        verticalAlign: 'bottom',
+		        y: 15
+		    },
+	        xAxis: {
+	            categories: [
+	            	{% for key,value in yearData %}
+					'{{key}}',
+					{% endfor %}
+	            ],
+	            crosshair: true
+	        },
+
+	        yAxis: [{ // Primary yAxis
+	            labels: {
+	                format: '{value:,.0f} %',
+	                style: {
+	                    color: Highcharts.getOptions().colors[1]
+	                }
+	            },
+	            title: {
+	                text: 'Costo',
+	                style: {
+	                    color: Highcharts.getOptions().colors[1]
+	                }
+	            }
+	        }],
+
+	        tooltip: {
+	            headerFormat: '<span style="font-size:10px">{point.key}</span><table>',
+	            pointFormat: '<tr><td style="color:{series.color};padding:0">{series.name}: </td>' +
+	                '<td style="padding:0"><b>{point.y:,.2f} %</b></td></tr>',
+	            footerFormat: '</table>',
+	            shared: true,
+	            useHTML: true
+	        },
+	        plotOptions: {
+	            column: {
+	                pointPadding: 0.2,
+	                borderWidth: 0
+	            }
+	        },
+	        credits:{
+	            enabled:false
+	        },
+	        series: [
+
+	        	{
+					name: 'Costo Z1',
+					type:'column',
+					data: [
+						{% for value in yearData %}
+						{{((value.cost1/total1)*100)}},						
+						{% endfor %}
+					]
+				},	
+
+				{
+					name: 'Costo Z2',
+					type:'column',
+					data: [
+						{% for value in yearData %}
+						{{((value.cost2/total2)*100)}},						
+						{% endfor %}
+					]
+				},	
+
+				{
+					name: 'Costo Z3',
+					type:'column',
+					data: [
+						{% for value in yearData %}
+						{{((value.cost3/total3)*100)}},						
+						{% endfor %}
+					]
+				},				
+	        ]
+	    });
+	});
+</script>
+{% endfor %}

@@ -1,0 +1,19 @@
+{
+	"database":{
+		"dialect":"mysql",
+		"host":"localhost",
+		"username":"root",
+		"password":"admin",
+		"database":"sigg"
+	},
+	"database_engine":{
+		"host":"localhost",
+		"username":"root",
+		"password":"admin",
+		"database":"sigg_engine"
+	},
+	"io_port":3131,
+	"port":3030,
+	"publicPath":"",
+	"mongo_host":"mongodb://localhost:27017/sigg"
+}

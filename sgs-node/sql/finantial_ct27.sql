@@ -1,0 +1,20 @@
+CREATE TABLE `finantial_ct27` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `nit` varchar(20) DEFAULT NULL,
+  `check_digit` varchar(5) DEFAULT NULL,
+  `entity_code` varchar(40) DEFAULT NULL,
+  `period` varchar(45) DEFAULT NULL,
+  `year` varchar(10) DEFAULT NULL,
+  `type_register` varchar(5) DEFAULT NULL,
+  `account_code` varchar(20)  DEFAULT NULL,
+  `days1_30`  varchar(30) DEFAULT NULL,
+  `days31_60`  varchar(30) DEFAULT NULL,
+  `days61_90`  varchar(30) DEFAULT NULL,
+  `days91_180`  varchar(30) DEFAULT NULL,
+  `days181_359`  varchar(30) DEFAULT NULL,
+  `days360_719`  varchar(30) DEFAULT NULL,
+  `daysGreater720` varchar(30) DEFAULT NULL,
+  `glossy` varchar(30) DEFAULT NULL,
+  `process_id` varchar(30) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;

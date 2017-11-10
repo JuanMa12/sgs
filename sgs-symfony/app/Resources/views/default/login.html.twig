@@ -1,0 +1,64 @@
+{% extends 'base.html.twig' %}
+
+{% block content %}
+	<div class="row login-background" style="margin-top: -22px;">	
+		<div class="col l4 m6 s12 offset-l4 offset-m3">
+			<div class="card-panel center-align">
+				<img src="{{ asset('img/logo_sid_orange.png')}}" style="margin: 15px 0px" class="responsive-img">
+				<form action="{{path('login_check')}}" id='login_form' method="POST">
+					<div class="input-field">
+						<input 
+							type="text"
+							id="_username"
+							name="_username"
+							value="{{ last_username }}" 
+							required autofocus>
+						<label for="_username">Usuario</label>
+					</div>
+					<div class="input-field">	
+						<input 
+							type="password"  
+							class="form-control"
+							id="_password"
+							name="_password"
+							required>
+						<label for="_password">Contraseña</label>
+					</div>
+
+					<div id="login_message"></div>
+					
+					<input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+					<div class="col m12">	
+						<button class="btn waves-effect orange">Iniciar sesion</button>
+					</div>
+
+					<br><br>
+					<a href="{{path('recover_password_form')}}" class="grey-text">¿Olvidaste tu contraseña?</a>
+				</form>
+			</div>
+		</div> 
+	</div>
+{% endblock %}
+
+{% block javascripts %}
+
+<script type="text/javascript">	
+	$(document).on('ready',function(){
+
+		$('#login_form').validate({
+			submitHandler:function(form){
+				form.submit()
+			}
+		})
+
+		{% if error %}
+		console.log("{{error.message}}")
+			
+			showMaterializeAlert("#login_message",'orange lighten-3','error','{{error.message}}')
+			
+		{% endif %}
+
+	})
+</script>
+	
+{% endblock %}
